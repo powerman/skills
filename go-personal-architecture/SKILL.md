@@ -97,6 +97,36 @@ The business logic package must not import transport or process packages like `n
 
 Choose the package mode before proposing a layout.
 
+### Prefer the simplest sufficient layout
+
+Start with the simplest layout that honestly fits the application today.
+Move to the next layout only when a concrete need appears, not just because the app might grow later.
+
+Recommended order of escalation:
+
+1. **Collapsed Tiny Executable Layout** — when the executable is truly small and separate packages would mostly add noise.
+2. **Private Executable Layout** — when the app is no longer tiny and benefits from explicit packages, but still does not need to be imported from outside the executable boundary.
+3. **Reusable / Embeddable Application Layout** — only when another package, binary, application, or repository must import the application boundary.
+
+Typical transition signals:
+
+- move from **collapsed tiny** to **private executable** when the app stops feeling flat, adapters multiply, tests become awkward, or `app` wants helper subpackages
+- move from **private executable** to **reusable / embeddable** when another binary, package, or repository must call the app through a stable in-process API
+- do not skip straight to a more complex layout only because future growth is imaginable
+
+### Use **collapsed tiny executable** mode when:
+
+- the executable is tiny
+- splitting packages would add ceremony without improving tests or reuse
+- you still keep the same roles (`wire`, `port`, `app`, `out`, `dal`) but collapse them into files
+
+### Use **private executable** mode when:
+
+- only the executable should use the app
+- no external package should import the app boundary
+- the app is large enough that explicit packages help
+- hiding the app behind `package main` is acceptable
+
 ### Use **reusable / embeddable application** mode when:
 
 - another package or binary must import the app
@@ -104,21 +134,70 @@ Choose the package mode before proposing a layout.
 - the app participates in a modular monolith
 - the app should expose a direct in-process API
 
-### Use **private executable** mode when:
+## Collapsed Tiny Executable Layout
 
-- only the executable should use the app
-- no external package should import the app boundary
-- hiding the app behind `package main` is acceptable
+Use this only for very small applications where separate packages would be mostly noise.
 
-### Use **collapsed private executable** mode when:
+```text
+tool-basic/
+├── go.mod
+├── main.go
+├── wire.go
+├── port.go
+├── app.go
+├── redis.go
+└── ...
+```
 
-- the executable is tiny
-- splitting packages would add ceremony without improving tests or reuse
-- you still keep the same roles (`wire`, `port`, `app`, `out`, `dal`) but collapse them into files
+Rules for this mode:
+
+- Keep responsibilities separated even if files share a package.
+- Do not move wiring logic into `main.go` just because the app is small.
+- Collapse packages only when the app is truly tiny.
+- When the app grows, expand to the private executable layout first.
+
+## Private Executable Layout
+
+Use this layout when the app does not need to be imported from outside the executable boundary.
+
+```text
+tool/
+├── go.mod
+├── main.go
+├── wire.go                     Mandatory; do not push wiring into main.go.
+└── internal/
+    ├── port/
+    │   ├── port.go             App + Repo + other Out ports + port-level errors.
+    │   └── types.go            Optional boundary DTO/types file.
+    ├── app/
+    │   ├── app.go              Implements port.App.
+    │   └── ...
+    ├── in/
+    │   ├── http/
+    │   │   └── adapter.go
+    │   └── nats/
+    │       └── adapter.go
+    ├── dal/
+    │   ├── adapter.go
+    │   └── migrations/
+    │       └── 00001_some_name.sql
+    └── out/
+        ├── nats/
+        │   └── adapter.go
+        └── redis/
+            └── adapter.go
+```
+
+Rules for this mode:
+
+- `wire.go` is still mandatory.
+- `wire.go` may live in `package main`.
+- Keep the private in-process contract in `internal/port`.
+- `internal/app` stays focused on business logic and implements `port.App`.
 
 ## Reusable / Embeddable Application Layout
 
-Use this layout when the application must be imported by other packages, binaries, or repositories.
+Use this layout only when the application must be imported by other packages, binaries, or repositories.
 
 ```text
 modular-monolith/
@@ -184,65 +263,6 @@ Rules for this mode:
 - `internal/in/*` adapts `api/*` or transport-specific DTOs to `port.App`.
 - `internal/out/*` and `internal/dal/*` may depend on `api/*` when external wire formats are shared.
 
-## Private Executable Layout
-
-Use this layout when the app does not need to be imported from outside the executable boundary.
-
-```text
-tool/
-├── go.mod
-├── main.go
-├── wire.go                     Mandatory; do not push wiring into main.go.
-└── internal/
-    ├── app/
-    │   ├── app.go
-    │   └── port.go             App + Repo + other Out ports + port-level errors.
-    ├── in/
-    │   ├── http/
-    │   │   └── adapter.go
-    │   └── nats/
-    │       └── adapter.go
-    ├── dal/
-    │   ├── adapter.go
-    │   └── migrations/
-    │       └── 00001_some_name.sql
-    └── out/
-        ├── nats/
-        │   └── adapter.go
-        └── redis/
-            └── adapter.go
-```
-
-Rules for this mode:
-
-- `wire.go` is still mandatory.
-- `wire.go` may live in `package main`.
-- `port.go` may live in the same package as `app.go` because the boundary is private.
-- The same architectural roles still exist; they are only not public.
-- If there are multiple executables, each executable may have its own `wire.go` near its `main.go`.
-
-## Collapsed Tiny Executable Layout
-
-Use this only for very small applications where separate packages would be mostly noise.
-
-```text
-tool-basic/
-├── go.mod
-├── main.go
-├── wire.go
-├── port.go
-├── app.go
-├── redis.go
-└── ...
-```
-
-Rules for this mode:
-
-- Keep responsibilities separated even if files share a package.
-- Do not move wiring logic into `main.go` just because the app is small.
-- Collapse packages only when the app is truly tiny.
-- When the app grows, expand back to the private executable layout first.
-
 ## Ports
 
 ### Keep port interfaces together
@@ -267,6 +287,30 @@ Optional split:
 
 Even when split into files, keep them in the same `port` package.
 Errors are part of the port contract, not internal implementation details.
+
+### Keep `port` outside `app` except in the tiny collapsed case
+
+Treat `port` as the application boundary contract and `app` as its implementation.
+That means the default shape is either:
+
+- everything collapsed into one package for a truly tiny executable, or
+- `port` as a separate package and `app` implementing it
+
+Why this split matters:
+
+- if everything is still in one tiny package, there is no package-boundary problem to solve yet
+- once `app` grows and wants helper subpackages, a `port.go` inside `app` starts pushing those subpackages to import `app` just to reach the contract
+- at the same time, the top-level `app` package may need to import its own helper subpackages
+- that creates avoidable import-cycle pressure around the very contract that should stay dependency-light
+
+So prefer these defaults:
+
+- **collapsed tiny executable**: keeping `port.go` and `app.go` in one package is fine because the app is intentionally flat
+- **private executable**: use `internal/port` + `internal/app`
+- **reusable / embeddable**: use public `port/` + private `internal/app`
+
+Do not put `port` inside `app` as the default for non-tiny layouts.
+If you do collapse them temporarily, treat it as a local simplification for a flat app, not as the growth path.
 
 ### `App` is the direct application API
 
