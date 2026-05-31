@@ -1,0 +1,18 @@
+{
+  "name": "powerman/skills",
+  "owner": {
+    "name": "Powerman"
+  },
+  "plugins": [
+    {
+      "name": "go-bounded-context-hexagonal",
+      "source": "./go-bounded-context-hexagonal",
+      "description": "Bounded-Context Hexagonal architecture for Go CLI and backend service applications — port/adapter boundaries, package layout, wiring, and modular monolith patterns."
+    },
+    {
+      "name": "go-engineering-policy",
+      "source": "./go-engineering-policy",
+      "description": "Go engineering policies and coding conventions — constructors, variable scope, project structure, and style overrides."
+    }
+  ]
+}
