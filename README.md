@@ -1,6 +1,6 @@
 # skills
 
-A collection of [Agent Skills](https://agentskills.io) for Go development.
+A collection of [Agent Skills](https://agentskills.io).
 
 Compatible with Claude Code, Cursor, Codex CLI, Gemini CLI, OpenCode, GitHub Copilot,
 and any agent that supports the Agent Skills specification.
