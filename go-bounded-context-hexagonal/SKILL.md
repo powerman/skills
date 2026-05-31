@@ -6,7 +6,7 @@ license: MIT
 compatibility: Designed for Claude Code or similar AI coding agents, and for Go CLI and backend service applications. For reusable libraries, prefer library-focused Go skills instead of this application-architecture skill.
 metadata:
   author: powerman
-  version: '0.0.1'
+  version: '0.1.0'
 ---
 
 # Bounded-Context Hexagonal
@@ -20,7 +20,7 @@ When recommendations conflict:
 - This skill wins for application boundaries, package layout, ports/adapters, and wiring.
 - For the user's own projects and for new application code, prefer this skill over generic architecture or design-pattern guidance, including `golang-design-patterns`.
 - `golang-design-patterns` remains useful as background reference material and for understanding or adapting third-party codebases that already follow another architecture.
-- `go-personal-policy` still applies for non-architectural Go conventions unless it conflicts
+- `go-engineering-policy` still applies for non-architectural Go conventions unless it conflicts
   with this skill's application structure.
 
 Apply these rules during:

@@ -1,6 +1,6 @@
 ---
-name: go-personal-policy
-description: 'Personal Go engineering policies and coding conventions. Always apply together with any Go-related skill or Go coding task. Overrides conflicting recommendations from generic Go style, lint, and general Go guidance. For application architecture and project structure in the user''s own or new Go projects, defer to `go-bounded-context-hexagonal` by default; use generic design-pattern and architecture skills mainly as supporting reference or when analyzing existing third-party codebases that already follow another style.'
+name: go-engineering-policy
+description: 'Go engineering policies and coding conventions. Always apply together with any Go-related skill or Go coding task. Overrides conflicting recommendations from generic Go style, lint, and general Go guidance. For application architecture and project structure, defer to `go-bounded-context-hexagonal` by default; use generic design-pattern and architecture skills mainly as supporting reference or when analyzing existing third-party codebases that already follow another style.'
 user-invocable: true
 license: MIT
 compatibility: Designed for Claude Code or similar AI coding agents, and for projects using Golang.
@@ -9,9 +9,9 @@ metadata:
   version: '0.0.1'
 ---
 
-# Go Personal Policy
+# Go Engineering Policy
 
-This skill defines personal Go engineering preferences.
+This skill defines Go engineering preferences and conventions.
 
 When recommendations from other Go-related skills conflict:
 
