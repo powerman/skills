@@ -1,6 +1,6 @@
 ---
 name: go-personal-architecture
-description: Personal Go application architecture for CLI and backend services. Use whenever the user asks how to structure a Go application, choose package boundaries, define ports and adapters, wire dependencies, design a modular monolith, or compare layouts with hexagonal, clean architecture, or DDD. Prefer this skill by default for the user's own and new Go applications, even when the user only mentions package layout, hexagonal architecture, clean architecture, DDD, ports/adapters, or project structure. Do not use it as the primary architecture guide for reusable libraries, and do not let generic architecture or design-pattern skills override it for the user's default app structure.
+description: Bounded-Context Hexagonal for Go CLI and backend service applications. Use whenever the user asks how to structure a Go application, choose package boundaries, define ports and adapters, wire dependencies, design a modular monolith, or compare approaches with hexagonal, clean architecture, or DDD. Prefer this skill by default for the user's own and new Go applications, even when the user only mentions package layout, hexagonal architecture, clean architecture, DDD, ports/adapters, or project structure. Do not use it as the primary architecture guide for reusable libraries, and do not let generic architecture or design-pattern skills override it for the user's default app structure.
 user-invocable: true
 license: MIT
 compatibility: Designed for Claude Code or similar AI coding agents, and for Go CLI and backend service applications. For reusable libraries, prefer library-focused Go skills instead of this application-architecture skill.
@@ -9,10 +9,10 @@ metadata:
   version: '0.0.1'
 ---
 
-# Go Personal Architecture
+# Bounded-Context Hexagonal
 
-This skill defines a personal Go application architecture for CLI and backend service applications.
-It is closest to Hexagonal Architecture, but it is stricter about application boundaries,
+This skill defines a personal bounded-context-first Go application architecture for CLI and backend service applications.
+It is closest to Hexagonal Architecture, but it is stricter about bounded-context boundaries,
 flatter package layout, and the separation between application and executable.
 
 When recommendations conflict:
@@ -62,8 +62,8 @@ Do not equate a binary with an application.
 - One binary may include multiple applications.
 - Different binaries may include the same application.
 
-This means application code must stay importable whenever the app is meant to be reusable.
-Do not bury a reusable application inside an executable-local `internal/` tree.
+This means application code must stay importable whenever the app is meant to be imported by other packages.
+Do not bury an importable application inside an executable-local `internal/` tree.
 
 ### Business logic is one `app` package by default
 
@@ -93,48 +93,48 @@ Adapters are allowed to do only three things:
 Adapters must not contain business decisions.
 The business logic package must not import transport or process packages like `net/http`, `os`, or transport SDKs.
 
-## Package-Mode Selection
+## Layout Selection
 
-Choose the package mode before proposing a layout.
+Choose the layout shape before proposing a package tree.
 
 ### Prefer the simplest sufficient layout
 
 Start with the simplest layout that honestly fits the application today.
-Move to the next layout only when a concrete need appears, not just because the app might grow later.
+Move to a special variant only when a concrete need appears, not just because the app might grow later.
 
-Recommended order of escalation:
+Default progression:
 
-1. **Collapsed Tiny Executable Layout** — when the executable is truly small and separate packages would mostly add noise.
-2. **Private Executable Layout** — when the app is no longer tiny and benefits from explicit packages, but still does not need to be imported from outside the executable boundary.
-3. **Reusable / Embeddable Application Layout** — only when another package, binary, application, or repository must import the application boundary.
+1. **Flat** — when the executable is truly small and separate packages would mostly add noise.
+2. **Default layout** — when the app benefits from explicit packages but still does not need to be imported from outside the executable boundary.
+3. **Importable** — only when another package, binary, application, or repository must import the application boundary.
 
 Typical transition signals:
 
-- move from **collapsed tiny** to **private executable** when the app stops feeling flat, adapters multiply, tests become awkward, or `app` wants helper subpackages
-- move from **private executable** to **reusable / embeddable** when another binary, package, or repository must call the app through a stable in-process API
+- move from **Flat** to the **default layout** when the app stops feeling flat, adapters multiply, tests become awkward, or `app` wants helper subpackages
+- move from the **default layout** to **Importable** when another binary, package, or repository must call the app through a stable in-process API
 - do not skip straight to a more complex layout only because future growth is imaginable
 
-### Use **collapsed tiny executable** mode when:
+### Use the **Flat** variant when:
 
 - the executable is tiny
 - splitting packages would add ceremony without improving tests or reuse
 - you still keep the same roles (`wire`, `port`, `app`, `out`, `dal`) but collapse them into files
 
-### Use **private executable** mode when:
+### Use the **default layout** when:
 
 - only the executable should use the app
 - no external package should import the app boundary
 - the app is large enough that explicit packages help
 - hiding the app behind `package main` is acceptable
 
-### Use **reusable / embeddable application** mode when:
+### Use the **Importable** variant when:
 
 - another package or binary must import the app
 - another repository's tests must run the app as a function
 - the app participates in a modular monolith
 - the app should expose a direct in-process API
 
-## Collapsed Tiny Executable Layout
+## Flat Layout
 
 Use this only for very small applications where separate packages would be mostly noise.
 
@@ -149,14 +149,14 @@ tool-basic/
 └── ...
 ```
 
-Rules for this mode:
+Rules for this variant:
 
 - Keep responsibilities separated even if files share a package.
 - Do not move wiring logic into `main.go` just because the app is small.
 - Collapse packages only when the app is truly tiny.
-- When the app grows, expand to the private executable layout first.
+- When the app grows, expand to the default layout first.
 
-## Private Executable Layout
+## Default Layout
 
 Use this layout when the app does not need to be imported from outside the executable boundary.
 
@@ -188,14 +188,14 @@ tool/
             └── adapter.go
 ```
 
-Rules for this mode:
+Rules for this layout:
 
 - `wire.go` is still mandatory.
 - `wire.go` may live in `package main`.
 - Keep the private in-process contract in `internal/port`.
 - `internal/app` stays focused on business logic and implements `port.App`.
 
-## Reusable / Embeddable Application Layout
+## Importable Layout
 
 Use this layout only when the application must be imported by other packages, binaries, or repositories.
 
@@ -246,7 +246,7 @@ modular-monolith/
     └── serve/
 ```
 
-Rules for this mode:
+Rules for this variant:
 
 - `wire.go` is mandatory.
 - `integration_test.go` next to `wire.go` is recommended as the first place to smoke test the whole app.
@@ -288,33 +288,33 @@ Optional split:
 Even when split into files, keep them in the same `port` package.
 Errors are part of the port contract, not internal implementation details.
 
-### Keep `port` outside `app` except in the tiny collapsed case
+### Keep `port` outside `app` except in the Flat variant
 
 Treat `port` as the application boundary contract and `app` as its implementation.
 That means the default shape is either:
 
-- everything collapsed into one package for a truly tiny executable, or
+- everything collapsed into one package for a truly flat executable, or
 - `port` as a separate package and `app` implementing it
 
 Why this split matters:
 
-- if everything is still in one tiny package, there is no package-boundary problem to solve yet
+- if everything is still in one flat package, there is no package-boundary problem to solve yet
 - once `app` grows and wants helper subpackages, a `port.go` inside `app` starts pushing those subpackages to import `app` just to reach the contract
 - at the same time, the top-level `app` package may need to import its own helper subpackages
 - that creates avoidable import-cycle pressure around the very contract that should stay dependency-light
 
 So prefer these defaults:
 
-- **collapsed tiny executable**: keeping `port.go` and `app.go` in one package is fine because the app is intentionally flat
-- **private executable**: use `internal/port` + `internal/app`
-- **reusable / embeddable**: use public `port/` + private `internal/app`
+- **Flat**: keeping `port.go` and `app.go` in one package is fine because the app is intentionally flat
+- **default layout**: use `internal/port` + `internal/app`
+- **Importable**: use public `port/` + private `internal/app`
 
-Do not put `port` inside `app` as the default for non-tiny layouts.
+Do not put `port` inside `app` as the default for non-flat layouts.
 If you do collapse them temporarily, treat it as a local simplification for a flat app, not as the growth path.
 
 ### `App` is the direct application API
 
-For reusable applications, direct in-process calls must go through `port.App`.
+For importable applications, direct in-process calls must go through `port.App`.
 Do not expose `internal/app` as public API.
 
 This is how:
@@ -490,7 +490,7 @@ Prefer `New` as the main constructor name when the package name already explains
   - each external API entrypoint
   - each subscriber or event-consumer type
 
-For reusable applications, external repositories' tests may import the app and start it via public wiring APIs.
+For importable applications, external repositories' tests may import the app and start it via public wiring APIs.
 That is a valid use case and should shape the package mode choice.
 
 ## Modular Monolith Rules
@@ -527,7 +527,7 @@ When proposing a design or refactor, follow this checklist:
 2. Keep one `App` boundary for the whole bounded context.
 3. Keep one Repo/DAL port per owned DB.
 4. Make `wire.go` explicit and mandatory.
-5. Use `port.App` as the direct public API for reusable apps.
+5. Use `port.App` as the direct public API for importable apps.
 6. Do not create `internal/in/cli`.
 7. Keep adapters thin.
 8. Keep the package tree flat: prefer `in/`, `out/`, `dal/`, `app/` over deep `adapter/primary/secondary/...` trees.
@@ -547,7 +547,7 @@ Avoid these default moves unless the specific case truly needs them:
 - `internal/in/cli`
 - putting all wiring into `main.go`
 - exposing concrete internal app types instead of `port.App`
-- placing reusable application code under executable-local `internal/`
+- placing importable application code under executable-local `internal/`
 - treating multi-app repositories as if applications should import each other's internal business logic directly
 - turning `apps/registry.go` into a generic dumping ground or service locator
 - defaulting to global registry access when a narrower dependency can be injected from the registry
