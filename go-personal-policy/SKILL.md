@@ -1,6 +1,6 @@
 ---
 name: go-personal-policy
-description: 'Personal Go engineering policies and coding conventions. Always apply together with any Go-related skill or Go coding task. Overrides conflicting recommendations from generic Go style, lint, and general Go guidance. For application architecture and project structure in the user''s own or new Go projects, defer to `go-personal-architecture` by default; use generic design-pattern and architecture skills mainly as supporting reference or when analyzing existing third-party codebases that already follow another style.'
+description: 'Personal Go engineering policies and coding conventions. Always apply together with any Go-related skill or Go coding task. Overrides conflicting recommendations from generic Go style, lint, and general Go guidance. For application architecture and project structure in the user''s own or new Go projects, defer to `go-bounded-context-hexagonal` by default; use generic design-pattern and architecture skills mainly as supporting reference or when analyzing existing third-party codebases that already follow another style.'
 user-invocable: true
 license: MIT
 compatibility: Designed for Claude Code or similar AI coding agents, and for projects using Golang.
@@ -16,7 +16,7 @@ This skill defines personal Go engineering preferences.
 When recommendations from other Go-related skills conflict:
 
 - this skill takes precedence for non-architectural Go conventions, coding policy, and engineering defaults;
-- `go-personal-architecture` takes precedence for application boundaries, package layout, ports/adapters, wiring, and default project structure in the user's own or new Go applications.
+- `go-bounded-context-hexagonal` takes precedence for application boundaries, package layout, ports/adapters, wiring, and default project structure in the user's own or new Go applications.
 
 Apply these rules during:
 
@@ -28,7 +28,7 @@ Apply these rules during:
 
 ## Architecture
 
-Use `go-personal-architecture` by default for:
+Use `go-bounded-context-hexagonal` by default for:
 
 - the user's own Go applications
 - new Go applications
@@ -59,7 +59,7 @@ Overrides conflicting recommendations from:
   - Multiple main apps or helper app: in the `cmd/app-name/`.
   - Manages only globals (flags, env, process metrics), graceful shutdown, and consuming the values prepared by application wiring.
   - Function `main()` must not contain any code which should be tested.
-- Application boundaries, package layout, adapter placement, and `wire.go` conventions are defined by `go-personal-architecture`, not by this file.
+- Application boundaries, package layout, adapter placement, and `wire.go` conventions are defined by `go-bounded-context-hexagonal`, not by this file.
 - Repo-internal helper packages shared by multiple apps may live in repo-root `internal/` when they are not part of any single app's public boundary.
 
 ### Non-Go repo with Go scripts
@@ -86,7 +86,7 @@ go-library
 
 ### Go applications
 
-For CLI apps, backend services, modular monoliths, and multi-app repositories, defer to `go-personal-architecture` for the canonical layout instead of using a separate structure from this policy.
+For CLI apps, backend services, modular monoliths, and multi-app repositories, defer to `go-bounded-context-hexagonal` for the canonical layout instead of using a separate structure from this policy.
 
 ## Variable Scope Policy
 

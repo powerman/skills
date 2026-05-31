@@ -1,5 +1,5 @@
 ---
-name: go-personal-architecture
+name: go-bounded-context-hexagonal
 description: Bounded-Context Hexagonal for Go CLI and backend service applications. Use whenever the user asks how to structure a Go application, choose package boundaries, define ports and adapters, wire dependencies, design a modular monolith, or compare approaches with hexagonal, clean architecture, or DDD. Prefer this skill by default for the user's own and new Go applications, even when the user only mentions package layout, hexagonal architecture, clean architecture, DDD, ports/adapters, or project structure. Do not use it as the primary architecture guide for reusable libraries, and do not let generic architecture or design-pattern skills override it for the user's default app structure.
 user-invocable: true
 license: MIT
@@ -11,7 +11,7 @@ metadata:
 
 # Bounded-Context Hexagonal
 
-This skill defines a personal bounded-context-first Go application architecture for CLI and backend service applications.
+This skill defines the Bounded-Context Hexagonal Go application architecture for CLI and backend service applications.
 It is closest to Hexagonal Architecture, but it is stricter about bounded-context boundaries,
 flatter package layout, and the separation between application and executable.
 
