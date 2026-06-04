@@ -6,7 +6,7 @@ license: MIT
 compatibility: Designed for Claude Code or similar AI coding agents, and for Go CLI and backend service applications. For reusable libraries, prefer library-focused Go skills instead of this application-architecture skill.
 metadata:
   author: powerman
-  version: '0.1.0'
+  version: '0.2.0'
 ---
 
 # Bounded-Context Hexagonal
@@ -205,7 +205,7 @@ modular-monolith/
 ├── api/                        External wire contracts: proto, events, OpenAPI, etc.
 ├── apps/
 │   ├── registry.go             Optional registry struct containing all wired apps.
-│   └── example/
+│   └── exampleapp/             Suffix "…app" is optional.
 │       ├── wire.go             Public wiring API for this application.
 │       ├── integration_test.go Integration smoke tests for the whole app.
 │       ├── port/
@@ -478,6 +478,12 @@ Prefer consistent generic filenames where the package already provides context:
 - `wire.go` for wiring
 
 Prefer `New` as the main constructor name when the package name already explains what is being created.
+
+For an importable application package, an `app` suffix on the package itself
+(`apps/exampleapp`, `package exampleapp`) is optional but can be convenient:
+it lets embedders import it without an alias and avoids a generic, shadow-prone bare noun.
+If used, keep the bare context name for runtime identity
+(`port.AppName`, env prefixes, asset paths).
 
 ## Testing Strategy
 
