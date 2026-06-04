@@ -6,7 +6,7 @@ license: MIT
 compatibility: Designed for Claude Code or similar AI coding agents, and for projects using Golang.
 metadata:
   author: powerman
-  version: '0.0.1'
+  version: '0.0.2'
 ---
 
 # Go Engineering Policy
@@ -265,3 +265,24 @@ client, err := NewClient(Config{
     NoWriteTimeout:   true,
 })
 ```
+
+## Golang Testing
+
+- Tests must only test the project's own code, not stdlib or third-party libraries.
+  Mock external dependencies (e.g. `os`) and test your logic, not the underlying library.
+- Use an external test package (`package xxx_test`).
+- Name test functions as `TestFunc_Variant`, `TestTypeMethod_Variant` (`_Variant` optional).
+- Place test functions in the same order as tested code.
+- Use `github.com/powerman/check` for assertions,
+  begin most tests with `tt.Parallel()` and `t := check.T(tt).MustAll()`,
+  use shortcut methods when available instead of `t.True(complex expression)`
+  (e.g. `t.Nil(err)`, `t.Err(err, wantErr)`, `t.Match(err, "substr")`, `t.Len(res)`, etc.).
+- Extensively use test helpers to reduce code duplication within and between tests.
+- Use [gomock](https://go.uber.org/mock/mockgen) by default for interaction-based tests,
+  where the assertions are about exact calls, arguments, call counts, matchers, or ordering.
+- Use [go-mockgen](https://github.com/unknwon/go-mockgen) for stateful fakes,
+  when tests are clearer as world-state transitions than as long `EXPECT()` chains,
+  especially when a dependency needs default behavior plus queued per-call overrides
+  and optional post-hoc inspection of call history.
+  List interface names explicitly with `-i` in `//go:generate`,
+  because stateful mocks are expected to be relatively rare.
