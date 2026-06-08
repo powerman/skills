@@ -6,7 +6,7 @@ license: MIT
 compatibility: Designed for Claude Code or similar AI coding agents, and for projects using Golang.
 metadata:
   author: powerman
-  version: '0.0.2'
+  version: '0.0.3'
 ---
 
 # Go Engineering Policy
@@ -271,7 +271,8 @@ client, err := NewClient(Config{
 - Tests must only test the project's own code, not stdlib or third-party libraries.
   Mock external dependencies (e.g. `os`) and test your logic, not the underlying library.
 - Use an external test package (`package xxx_test`).
-- Name test functions as `TestFunc_Variant`, `TestTypeMethod_Variant` (`_Variant` optional).
+- Name test functions using same naming convention as to declare examples:
+  `Test`, `TestF`, `TestT`, `TestT_M` with optional `_suffixCamelCase`.
 - Place test functions in the same order as tested code.
 - Use `github.com/powerman/check` for assertions,
   begin most tests with `tt.Parallel()` and `t := check.T(tt).MustAll()`,
