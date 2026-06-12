@@ -6,7 +6,7 @@ license: MIT
 compatibility: Designed for Claude Code or similar AI coding agents, and for projects using Golang.
 metadata:
   author: powerman
-  version: '0.0.3'
+  version: '0.0.4'
 ---
 
 # Go Engineering Policy
@@ -15,8 +15,13 @@ This skill defines Go engineering preferences and conventions.
 
 When recommendations from other Go-related skills conflict:
 
-- this skill takes precedence for non-architectural Go conventions, coding policy, and engineering defaults;
-- `go-bounded-context-hexagonal` takes precedence for application boundaries, package layout, ports/adapters, wiring, and default project structure in the user's own or new Go applications.
+- this skill takes precedence
+  for non-architectural Go conventions, coding policy,
+  and engineering defaults;
+- `go-bounded-context-hexagonal` takes precedence
+  for application boundaries, package layout, ports/adapters, wiring,
+  and default project structure
+  in the user's own or new Go applications.
 
 Apply these rules during:
 
@@ -57,10 +62,16 @@ Overrides conflicting recommendations from:
 - Package main:
   - Single main app: in the repo root.
   - Multiple main apps or helper app: in the `cmd/app-name/`.
-  - Manages only globals (flags, env, process metrics), graceful shutdown, and consuming the values prepared by application wiring.
+  - Manages only globals (flags, env, process metrics),
+    graceful shutdown,
+    and consuming the values prepared by application wiring.
   - Function `main()` must not contain any code which should be tested.
-- Application boundaries, package layout, adapter placement, and `wire.go` conventions are defined by `go-bounded-context-hexagonal`, not by this file.
-- Repo-internal helper packages shared by multiple apps may live in repo-root `internal/` when they are not part of any single app's public boundary.
+- Application boundaries, package layout, adapter placement,
+  and `wire.go` conventions
+  are defined by `go-bounded-context-hexagonal`, not by this file.
+- Repo-internal helper packages shared by multiple apps
+  may live in repo-root `internal/`
+  when they are not part of any single app's public boundary.
 
 ### Non-Go repo with Go scripts
 
@@ -86,7 +97,55 @@ go-library
 
 ### Go applications
 
-For CLI apps, backend services, modular monoliths, and multi-app repositories, defer to `go-bounded-context-hexagonal` for the canonical layout instead of using a separate structure from this policy.
+For CLI apps, backend services, modular monoliths, and multi-app repositories,
+defer to `go-bounded-context-hexagonal`
+for the canonical layout instead of using a separate structure from this policy.
+
+## Library Documentation: README vs Package Doc
+
+Split content between README and package doc (`doc.go`) by audience, not by topic:
+README answers an evaluating visitor ("should I use this? why is feature X missing?"),
+package doc answers a user of the package ("how do I use this correctly?").
+pkg.go.dev renders both, so full duplication is never needed;
+only the headline positioning stance may live in both,
+everything else is single-homed by the audience criterion.
+
+README:
+
+- Start with a Rationale section before any code:
+  what is wrong with the typical approach in the existing ecosystem
+  and why this library solves the task from a different direction.
+  A one-line description plus a feature list does not explain why the library exists.
+- Comparison with alternatives must be honest:
+  compare feature-by-feature only against libraries solving the same problem;
+  for libraries solving a different problem say so explicitly
+  and give a "pick them if …, pick this if …" rule
+  instead of a feature table where competitors lose by definition
+  (because they are not about this functionality at all).
+- Non-goals in README are positioning stances:
+  answers to "why is feature X missing", with the reasoning.
+- Quick start must show the payoff, not just the API surface.
+  When the API separates roles (e.g. a private writer vs a read-only view),
+  split the example into those roles
+  and put the state-changing calls into the role that owns them.
+  Use comments to teach key semantics inline
+  (e.g. how an aggregate status evolves after each call).
+- Guidance sections must be understandable without knowing the author's other projects:
+  generalize ("several services in one binary") instead of project-specific framing.
+
+Package doc (`doc.go`):
+
+- Rationale states what tasks the package solves and why this design —
+  no ecosystem surveys or comparisons with alternatives (that is README material).
+- Document contracts and semantics the user must follow:
+  invariants, conventions, concurrency guarantees.
+- Non-goals in package doc are usage guidance,
+  phrased as instructions (what to do instead), not positioning.
+- No project-specific jargon from the repo the library was extracted from.
+
+Examples everywhere (README, doc comments, `example_test.go`) must promote
+the library's recommended usage conventions (naming schemes, embedding style)
+from the first release, consistently across all three places.
 
 ## Variable Scope Policy
 
