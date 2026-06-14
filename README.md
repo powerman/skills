@@ -5,6 +5,16 @@ A collection of [Agent Skills](https://agentskills.io).
 Compatible with Claude Code, Cursor, Codex CLI, Gemini CLI, OpenCode, GitHub Copilot,
 and any agent that supports the Agent Skills specification.
 
+## Skills
+
+| Skill                                                         | Description                                                                                                                   |
+| ------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| [go-bounded-context-hexagonal](go-bounded-context-hexagonal/) | Bounded-Context Hexagonal Go application architecture — package layout, ports/adapters, wiring, and modular monolith patterns |
+| [go-engineering-policy](go-engineering-policy/)               | Go engineering policies and coding conventions — constructors, variable scope, project structure, and style overrides         |
+| [todo-plan](todo-plan/)                                       | Create a throwaway TODO working note for a multi-step task — agreed Plan + Progress checklist, ready to hand off to execution |
+| [todo](todo/)                                                 | Resume a TODO working note (primary command) — no arg lists open notes to pick from, or pass a slug to continue               |
+| [todo-done](todo-done/)                                       | Finish a TODO — verify its knowledge was extracted into docs/comments/commit, then delete the note                            |
+
 ## Installation
 
 ### Universal (recommended)
@@ -68,16 +78,6 @@ ln -s "$PWD/skills/go-bounded-context-hexagonal" ~/.cursor/skills/
 # OpenCode / Codex CLI
 ln -s "$PWD/skills/go-bounded-context-hexagonal" .agents/skills/
 ```
-
-## Skills
-
-| Skill                                                         | Description                                                                                                                   |
-| ------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| [go-bounded-context-hexagonal](go-bounded-context-hexagonal/) | Bounded-Context Hexagonal Go application architecture — package layout, ports/adapters, wiring, and modular monolith patterns |
-| [go-engineering-policy](go-engineering-policy/)               | Go engineering policies and coding conventions — constructors, variable scope, project structure, and style overrides         |
-| [todo-plan](todo-plan/)                                       | Create a throwaway TODO working note for a multi-step task — agreed Plan + Progress checklist, ready to hand off to execution |
-| [todo](todo/)                                                 | Resume a TODO working note (primary command) — no arg lists open notes to pick from, or pass a slug to continue               |
-| [todo-done](todo-done/)                                       | Finish a TODO — verify its knowledge was extracted into docs/comments/commit, then delete the note                            |
 
 ## TODO workflow (`todo-plan` / `todo` / `todo-done`)
 
