@@ -81,33 +81,45 @@ ln -s "$PWD/skills/go-bounded-context-hexagonal" .agents/skills/
 
 ## TODO workflow (`todo-plan` / `todo` / `todo-done`)
 
-A lightweight, plan-then-execute workflow for multi-step tasks —
-a much lighter alternative to full Spec-Driven Development frameworks.
+A lightweight, human-gated workflow for multi-step tasks.
+The agent writes a short plan, you steer and review each step,
+then the agent extracts durable knowledge before retiring the note.
+
 Install all three skills as a set; individually they are not useful.
-Notes are stored in `~/.todo/`, so the skills work with any agent that can run shell commands.
 
-### Why
+### What this is
 
-A strong model designs the task and writes a short plan;
-a cheaper model (or a later session) executes it step by step;
-the strong model later reviews the result and extracts anything worth keeping.
-The plan is a **throwaway working note**, not a tracked project document:
-it sets direction, like the first message of a chat.
+- **Human-gated planning.** The agent proposes, you approve.
+  Each step is meant to be reviewed before committing —
+  not an autonomous vibe-coding run.
+- **Throwaway working notes.** The plan is like the first message of a chat:
+  it sets direction. Once execution starts the plan is immutable,
+  but you can defer, split, cancel, or re-scope checklist items at any time.
+  The note gets deleted when done (after extracting what's worth keeping).
+- **Agent-independent.** Notes live in `~/.todo/<project>/` as plain Markdown
+  in their own git repo, so they work with any agent that can run shell commands.
+
+### What this is not
+
+- Not an autonomous execution system — there is no completion gate
+  that forces the agent to finish everything before stopping.
+  **The gate is you.**
+- Not Spec-Driven Development — no formal specs, no acceptance criteria,
+  no long-lived specification files synced with code.
+- Not a project management tool — no dependencies, no assignees, no board.
+  It's a scratchpad for one task at a time.
 
 ### How it works
 
-- Notes live in a dedicated git repository at `~/.todo/<project>/<slug>.md`,
-  outside any project repo — so they never pollute commits, survive `git worktree`,
-  and a task spanning several repositories keeps a single note.
-- `<project>` is the worktree-stable repository id of the task's primary repo.
-  The same task planned for several repositories gets one note per project,
-  tracked independently.
-- Each note has two sections with different rules:
-  - `## Plan` — **immutable**: the agreed goal, rationale and boundaries.
-  - `## Progress` — **mutable**: a checklist plus short notes for any deviation.
-- The skills create the repo on first use and commit every change automatically,
-  so you can `git -C ~/.todo log`/`diff` to review history.
-  `/todo-done` deletes a note, but the deletion is committed, so it stays recoverable.
+- `/todo-plan` creates `~/.todo/<project>/<slug>.md` with immutable `## Plan`
+  and mutable `## Progress` (checklist + deviation notes).
+- `/todo` resumes a note and works unchecked items in order.
+  The agent writes code; you review and commit before the next step.
+- `/todo-done` reads the note for knowledge worth keeping
+  (rationale, trade-offs, deviations), extracts it into docs/comments/commit,
+  then deletes the note — deletion is committed, so it stays recoverable.
+- Everything is auto-committed to `~/.todo/`'s own git repo,
+  never touching the project's history.
 
 ### Usage
 
@@ -117,14 +129,14 @@ it sets direction, like the first message of a chat.
 /todo-done [[<project>/]<slug>]   # extract knowledge, then retire (no arg → pick)
 ```
 
-Pass a `<project>/` prefix to act on a note owned by another repository while you
-work inside the current one — the intended way to handle cross-repository tasks.
+Prefix with `<project>/` to work on a note owned by another repository
+while you are inside the current one — for cross-repository tasks.
 
 ### Recommended `CLAUDE.md` snippet
 
 The skills are self-contained, but adding this to your user-level `CLAUDE.md`
-(or `AGENTS.md`) makes the agent respect the notes even when it opens one without
-going through a skill:
+(or `AGENTS.md`) makes the agent respect the notes
+even when it opens one without going through a skill:
 
 ```markdown
 ## TODO working notes
@@ -135,7 +147,7 @@ managed by the `/todo-plan`, `/todo` and `/todo-done` skills.
 - `~/.todo/` is its own git repository; the skills commit every change.
   Never commit notes into a project repo or reference them in commits/PRs/code.
 - `## Plan` is immutable — once execution starts, NEVER rewrite it.
-- `## Progress` is the only mutable part — tick the checklist and append short
-  notes for deviations.
+- `## Progress` is the only mutable part — tick the checklist
+  and append short notes for deviations.
 - Treat a TODO like the first message of a chat, not a living document.
 ```
