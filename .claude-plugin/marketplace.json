@@ -13,6 +13,21 @@
       "name": "go-engineering-policy",
       "source": "./go-engineering-policy",
       "description": "Go engineering policies and coding conventions — constructors, variable scope, project structure, and style overrides."
+    },
+    {
+      "name": "todo-plan",
+      "source": "./todo-plan",
+      "description": "Create a throwaway TODO working note for a multi-step task — capture the agreed Plan and an empty Progress checklist for hand-off to execution."
+    },
+    {
+      "name": "todo",
+      "source": "./todo",
+      "description": "Resume work on a TODO working note (the primary command) — no argument lists open notes to pick from, or pass a slug to continue from the next unchecked step."
+    },
+    {
+      "name": "todo-done",
+      "source": "./todo-done",
+      "description": "Finish a TODO — verify its durable knowledge was extracted into docs/comments/commit, then delete the working note."
     }
   ]
 }
