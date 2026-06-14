@@ -1,17 +1,26 @@
 ---
 name: go-engineering-policy
-description: 'Go engineering policies and coding conventions. Always apply together with any Go-related skill or Go coding task. Overrides conflicting recommendations from generic Go style, lint, and general Go guidance. For application architecture and project structure, defer to `go-bounded-context-hexagonal` by default; use generic design-pattern and architecture skills mainly as supporting reference or when analyzing existing third-party codebases that already follow another style.'
+description: 'Mandatory Go engineering policies and conventions. REQUIRED for ALL Go coding work — writing, refactoring, reviewing, generating, testing, or discussing Go code, including any change to .go files. Overrides generic Go style and lint guidance on conflicting rules.'
 user-invocable: true
 license: MIT
 compatibility: Designed for Claude Code or similar AI coding agents, and for projects using Golang.
 metadata:
   author: powerman
-  version: '0.0.4'
+  version: '0.0.5'
 ---
 
 # Go Engineering Policy
 
-This skill defines Go engineering preferences and conventions.
+This skill defines mandatory Go engineering policies
+that ALWAYS take effect when working with Go code.
+
+Apply these rules during:
+
+- code generation
+- refactoring
+- code review
+- architecture discussions
+- style discussions
 
 When recommendations from other Go-related skills conflict:
 
@@ -22,14 +31,6 @@ When recommendations from other Go-related skills conflict:
   for application boundaries, package layout, ports/adapters, wiring,
   and default project structure
   in the user's own or new Go applications.
-
-Apply these rules during:
-
-- code generation
-- refactoring
-- code review
-- architecture discussions
-- style discussions
 
 ## Architecture
 
