@@ -34,12 +34,16 @@ The deletion is committed, so the note stays recoverable from the notes repo's g
 2. Read `~/.todo/<project>/<slug>.md` and review it for durable value that must
    outlive the note:
    - `## Plan` — rationale, trade-offs, boundaries;
-   - `## Progress` — deviations from the original plan.
+   - `## Progress` — deviations from the original plan,
+     and any checklist items left unchecked (deferred or cut).
 
    For each such item, confirm it already lives in the right place
    (documentation, code comments, the commit/PR message, or another TODO).
    List anything not yet captured and extract it now,
    or confirm with the user that it can be dropped.
+
+   Unfinished checklist items are durable value too: when leftover work still matters,
+   spin it out as its own TODO with `/todo-plan` rather than letting it vanish with the note.
 
 3. Once nothing valuable remains only in the note, delete it and commit the removal:
 

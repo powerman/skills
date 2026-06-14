@@ -92,9 +92,13 @@ Install all three skills as a set; individually they are not useful.
 - **Human-gated planning.** The agent proposes, you approve.
   Each step is meant to be reviewed before committing —
   not an autonomous vibe-coding run.
-- **Throwaway working notes.** The plan is like the first message of a chat:
-  it sets direction. Once execution starts the plan is immutable,
-  but you can defer, split, cancel, or re-scope checklist items at any time.
+- **Throwaway working notes.** The plan is like the first message of a chat: it sets direction.
+  Once execution starts the Plan is fixed — not because requirements can't change,
+  but so the gap between original intent and what actually happened stays visible
+  (deviations go into `## Progress`, never by rewriting the Plan — a thing models love to do).
+  You can still defer, split, cancel, or re-scope checklist items;
+  if the Plan itself is no longer the task,
+  retire the note and re-plan rather than rewrite it.
   The note gets deleted when done (after extracting what's worth keeping).
 - **Agent-independent.** Notes live in `~/.todo/<project>/` as plain Markdown
   in their own git repo, so they work with any agent that can run shell commands.
@@ -108,6 +112,42 @@ Install all three skills as a set; individually they are not useful.
   no long-lived specification files synced with code.
 - Not a project management tool — no dependencies, no assignees, no board.
   It's a scratchpad for one task at a time.
+
+### How it compares
+
+Several tools sit in nearby niches.
+The choice between them is mostly about two things:
+how long the artifact lives, and who is expected to drive.
+
+- **In-session todo lists** — the agent's own checklist
+  (Claude Code's `TodoWrite`, the plan mode in Cursor or Codex).
+  These keep a single task in focus but live only inside the session:
+  they don't survive a context compaction, a restart, or a model switch,
+  and there is no saved plan to review or hand off.
+  This workflow is that same single-task focus promoted to a file —
+  made persistent, reviewable, and resumable by any agent.
+
+- **[ai-dev-tasks](https://github.com/snarktank/ai-dev-tasks)**
+  (PRD → task list → one sub-task at a time, human-approved)
+  is the closest match in spirit,
+  and a good fit if you want the plan to stay a living document inside the repo.
+  The difference is _lifecycle_: its PRD and `tasks-*.md` live in the project and
+  persist, the plan keeps being edited, and nothing is distilled at the end.
+  Here the note lives outside the project, the Plan is frozen once execution starts,
+  and `/todo-done` forces durable knowledge out into docs/comments/commit
+  before deleting the scaffolding.
+
+- **Project-memory docs** (Cline Memory Bank and similar) solve the opposite problem:
+  long-lived context about the _whole project_, committed _inside_ the repo.
+  Reach for those when you want the agent to remember the project across tasks;
+  reach for this when you want to carry _one_ task across sessions
+  and then throw the scaffolding away.
+
+- **Spec-Driven Development** (Spec Kit, OpenSpec, Kiro, BMAD) and **task systems** (Task Master)
+  add formal specs or dependency graphs, sub-task expansion, and multi-agent roles.
+  They earn their weight on large or team projects and are overhead for a single focused change.
+  When a note starts wanting acceptance criteria or task dependencies,
+  that is the signal to graduate to one of them.
 
 ### How it works
 

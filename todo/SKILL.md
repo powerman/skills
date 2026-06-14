@@ -59,6 +59,14 @@ This is the command you run most often, so it has the short name.
    - if you departed from the Plan, append a short deviation note under
      `## Progress` — do NOT edit `## Plan`.
 
+   The Plan is the original agreed intent; keeping it fixed preserves the gap
+   between what was intended and what actually happened — exactly what review
+   and `/todo-done` read.
+   Rewriting it to match reality erases that signal and is pointless in a throwaway note.
+   If the Plan has become genuinely wrong rather than merely refined — the task changed shape,
+   not just its steps — retire the note with `/todo-done` and re-plan,
+   instead of mutating the Plan.
+
    Treat the note as direction, not a document to keep in sync as prose.
 
 5. Commit the updated note to the notes repository.
