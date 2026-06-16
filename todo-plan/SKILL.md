@@ -6,7 +6,7 @@ license: MIT
 compatibility: Designed for any AI coding agent with shell access; stores notes in a self-managed git repo under ~/.todo/.
 metadata:
   author: powerman
-  version: '0.1.0'
+  version: '0.2.0'
 ---
 
 # /todo-plan
@@ -58,6 +58,17 @@ and never referenced in commits, PRs, or code.
 4. Write the file from the template below.
    Fill `## Plan` from the design agreed in the current conversation
    (goal, rationale, boundaries, approach).
+
+   Write the plan assuming execution may be handed to a weaker model than the one writing it:
+   planning sessions tend to run on a stronger model than execution sessions.
+   Spell out what a less capable executor would otherwise have to infer:
+   - concrete function/method signatures, file paths, and identifiers to use or change;
+   - short code or pseudocode snippets for non-obvious steps,
+     not just a prose description of the outcome;
+   - links to relevant docs, existing examples in the codebase, or API references;
+   - explicit edge cases and acceptance criteria, not "handle errors appropriately".
+
+   Prefer one extra concrete detail over one extra abstract sentence.
    Seed `## Progress` with a checklist derived from the plan's steps:
 
    ```markdown

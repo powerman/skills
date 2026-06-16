@@ -1,12 +1,12 @@
 ---
 name: todo-done
-description: Finish a TODO — verify its durable knowledge (Plan rationale, Progress deviations) was moved into docs, code comments, or the commit/PR, then delete the working note. With no argument it lists open notes (most-recently-modified first) and asks which to retire.
+description: Finish a TODO — review the resulting change against the Plan, verify its durable knowledge (Plan rationale, Progress deviations) was moved into docs, code comments, or the commit/PR, then delete the working note. With no argument it lists open notes (most-recently-modified first) and asks which to retire.
 user-invocable: true
 license: MIT
 compatibility: Designed for any AI coding agent with shell access; removes notes from a self-managed git repo under ~/.todo/.
 metadata:
   author: powerman
-  version: '0.1.0'
+  version: '0.2.0'
 ---
 
 # /todo-done
@@ -45,7 +45,26 @@ The deletion is committed, so the note stays recoverable from the notes repo's g
    Unfinished checklist items are durable value too: when leftover work still matters,
    spin it out as its own TODO with `/todo-plan` rather than letting it vanish with the note.
 
-3. Once nothing valuable remains only in the note, delete it and commit the removal:
+3. Do not stop at "every checklist box is ticked" —
+   that only confirms the executor believes it's done,
+   and retirement sessions tend to run on a stronger model than execution sessions,
+   the same gap `/todo-plan` accounts for.
+   Actually review the resulting change against the `## Plan`:
+   - read the real diff (`git diff` / `git log -p` for the relevant commits),
+     not just the note's checklist;
+   - check it matches the Plan's goal, boundaries, and approach,
+     and flags any silent deviation not recorded under `## Progress`;
+   - look for correctness issues an executor could plausibly have introduced
+     (wrong edge-case handling, skipped error paths,
+     signatures that drifted from what the Plan specified);
+   - confirm format/lint/test actions required by the project were actually run and pass,
+     not merely assumed.
+
+   If review surfaces a real problem send it back to the user
+   instead of retiring the note as if it were done.
+
+4. Once nothing valuable remains only in the note and review found no open problem,
+   delete it and commit the removal:
 
    ```
    rm ~/.todo/<project>/<slug>.md
@@ -55,4 +74,5 @@ The deletion is committed, so the note stays recoverable from the notes repo's g
        git -C ~/.todo commit -q -m "done: <project>/<slug>"
    ```
 
-4. Confirm what was extracted (and where) and that the note was removed.
+5. Confirm what was extracted (and where), what the review checked,
+   and that the note was removed.
