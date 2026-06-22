@@ -6,31 +6,36 @@ license: MIT
 compatibility: Designed for Claude Code or similar AI coding agents, and for Go CLI and backend service applications. For reusable libraries, prefer library-focused Go skills instead of this application-architecture skill.
 metadata:
   author: powerman
-  version: '0.2.0'
+  version: '0.3.0'
 ---
 
 # Bounded-Context Hexagonal
 
-This skill defines the Bounded-Context Hexagonal Go application architecture for CLI and backend service applications.
+This skill defines the Bounded-Context Hexagonal Go application architecture
+for CLI and backend service applications.
 It is closest to Hexagonal Architecture, but it is stricter about bounded-context boundaries,
 flatter package layout, and the separation between application and executable.
 
 When recommendations conflict:
 
 - This skill wins for application boundaries, package layout, ports/adapters, and wiring.
-- For the user's own projects and for new application code, prefer this skill over generic architecture or design-pattern guidance, including `golang-design-patterns`.
-- `golang-design-patterns` remains useful as background reference material and for understanding or adapting third-party codebases that already follow another architecture.
+- For the user's own projects and for new application code,
+  prefer this skill over generic architecture or design-pattern guidance,
+  including `golang-design-patterns`.
+- `golang-design-patterns` remains useful as background reference material
+  and for understanding or adapting third-party codebases
+  that already follow another architecture.
 - `go-engineering-policy` still applies for non-architectural Go conventions unless it conflicts
   with this skill's application structure.
 
 Apply these rules during:
 
-- architecture discussions
-- package layout design
-- refactoring an app structure
-- designing CLI and backend services
-- modular monolith design
-- testing strategy discussions for application boundaries
+- Architecture discussions.
+- Package layout design.
+- Refactoring an app structure.
+- Designing CLI and backend services.
+- Modular monolith design.
+- Testing strategy discussions for application boundaries.
 
 ## Scope
 
@@ -51,7 +56,7 @@ Consequences:
 - Use **one In port for the whole application**.
 - Use **one Repo/DAL Out port per owned database**.
 - The application is the only owner of its database data.
-  Other apps must use its API, or in a modular monolith call its direct `port.App` API.
+  Other apps must use its API, or in a modular monolith call its `port.InprocApp` API.
 
 ### Executable != Application
 
@@ -62,7 +67,8 @@ Do not equate a binary with an application.
 - One binary may include multiple applications.
 - Different binaries may include the same application.
 
-This means application code must stay importable whenever the app is meant to be imported by other packages.
+This means application code must stay importable
+whenever the app is meant to be imported by other packages.
 Do not bury an importable application inside an executable-local `internal/` tree.
 
 ### Business logic is one `app` package by default
@@ -72,7 +78,8 @@ That split is often a workaround for package cycles, not an architectural necess
 
 The public architecture is fixed by `wire.go`, `port.App`, and the adapter boundaries.
 The internal architecture of `app` should follow the needs of the specific business logic.
-Inside `app`, organize code by use case, workflow, invariant cluster, subdomain, or private helper interfaces whenever that improves clarity.
+Inside `app`, organize code by use case, workflow, invariant cluster, subdomain,
+or private helper interfaces whenever that improves clarity.
 Do not force one universal inner style on every application.
 
 Prefer this order of growth:
@@ -86,12 +93,13 @@ Prefer this order of growth:
 
 Adapters are allowed to do only three things:
 
-- talk to the outside world
-- validate external protocol or transport shape
-- convert between external formats and application-facing types
+- Talk to the outside world.
+- Validate external protocol or transport shape.
+- Convert between external formats and application-facing types.
 
 Adapters must not contain business decisions.
-The business logic package must not import transport or process packages like `net/http`, `os`, or transport SDKs.
+The business logic package must not import transport or process packages like
+`net/http`, `os`, or transport SDKs.
 
 ## Layout Selection
 
@@ -100,39 +108,45 @@ Choose the layout shape before proposing a package tree.
 ### Prefer the simplest sufficient layout
 
 Start with the simplest layout that honestly fits the application today.
-Move to a special variant only when a concrete need appears, not just because the app might grow later.
+Move to a special variant only when a concrete need appears,
+not just because the app might grow later.
 
 Default progression:
 
 1. **Flat** — when the executable is truly small and separate packages would mostly add noise.
-2. **Default layout** — when the app benefits from explicit packages but still does not need to be imported from outside the executable boundary.
-3. **Importable** — only when another package, binary, application, or repository must import the application boundary.
+2. **Default layout** — when the app benefits from explicit packages
+   but still does not need to be imported from outside the executable boundary.
+3. **Importable** — only when another package, binary, application,
+   or repository must import the application boundary.
 
 Typical transition signals:
 
-- move from **Flat** to the **default layout** when the app stops feeling flat, adapters multiply, tests become awkward, or `app` wants helper subpackages
-- move from the **default layout** to **Importable** when another binary, package, or repository must call the app through a stable in-process API
-- do not skip straight to a more complex layout only because future growth is imaginable
+- Move from **Flat** to the **default layout** when the app stops feeling flat,
+  adapters multiply, tests become awkward, or `app` wants helper subpackages.
+- Move from the **default layout** to **Importable** when another binary, package,
+  or repository must call the app through a stable in-process API.
+- Do not skip straight to a more complex layout only because future growth is imaginable.
 
 ### Use the **Flat** variant when:
 
-- the executable is tiny
-- splitting packages would add ceremony without improving tests or reuse
-- you still keep the same roles (`wire`, `port`, `app`, `out`, `dal`) but collapse them into files
+- The executable is tiny.
+- Splitting packages would add ceremony without improving tests or reuse.
+- You still keep the same roles (`wire`, `port`, `app`, `out`, `dal`)
+  but collapse them into files.
 
 ### Use the **default layout** when:
 
-- only the executable should use the app
-- no external package should import the app boundary
-- the app is large enough that explicit packages help
-- hiding the app behind `package main` is acceptable
+- Only the executable should use the app.
+- No external package should import the app boundary.
+- The app is large enough that explicit packages help.
+- Hiding the app behind `package main` is acceptable.
 
 ### Use the **Importable** variant when:
 
-- another package or binary must import the app
-- another repository's tests must run the app as a function
-- the app participates in a modular monolith
-- the app should expose a direct in-process API
+- Another package or binary must import the app.
+- Another repository's tests must run the app as a function.
+- The app participates in a modular monolith.
+- The app should expose a direct in-process API.
 
 ## Flat Layout
 
@@ -142,9 +156,9 @@ Use this only for very small applications where separate packages would be mostl
 tool-basic/
 ├── go.mod
 ├── main.go
-├── wire.go
-├── port.go
-├── app.go
+├── wire.go                     Returns a Runtime + startable units.
+├── port.go                     App + other Out ports + port-level errors.
+├── app.go                      Implements port.App.
 ├── redis.go
 └── ...
 ```
@@ -164,7 +178,7 @@ Use this layout when the app does not need to be imported from outside the execu
 tool/
 ├── go.mod
 ├── main.go
-├── wire.go                     Mandatory; do not push wiring into main.go.
+├── wire.go                     Returns a Runtime + startable units.
 └── internal/
     ├── port/
     │   ├── port.go             App + Repo + other Out ports + port-level errors.
@@ -197,19 +211,20 @@ Rules for this layout:
 
 ## Importable Layout
 
-Use this layout only when the application must be imported by other packages, binaries, or repositories.
+Use this layout only when the application must be imported by other packages, binaries,
+or repositories.
 
 ```text
 modular-monolith/
 ├── go.mod
 ├── api/                        External wire contracts: proto, events, OpenAPI, etc.
 ├── apps/
-│   ├── registry.go             Optional registry struct containing all wired apps.
+│   ├── apps.go                 Composition layer wiring the apps a binary includes.
 │   └── exampleapp/             Suffix "…app" is optional.
-│       ├── wire.go             Public wiring API for this application.
+│       ├── wire.go             Public wiring API; returns a Runtime + startable units.
 │       ├── integration_test.go Integration smoke tests for the whole app.
 │       ├── port/
-│       │   ├── port.go         App + Repo + other Out ports + port-level errors.
+│       │   ├── port.go         App + Repo + other Out ports + InprocApp in-port + errors.
 │       │   └── types.go        Optional boundary DTO/types file.
 │       └── internal/
 │           ├── app/
@@ -232,10 +247,11 @@ modular-monolith/
 │               └── redis/
 │                   └── adapter.go
 ├── cmd/
-│   ├── cli/
+│   ├── example/                Single-app binary: main.go calls exampleapp.Wire directly.
 │   │   └── main.go
-│   └── server/
-│       └── main.go
+│   └── monolith/               Multi-app binary.
+│       ├── main.go
+│       └── wire.go             Composes the embedded apps via apps.go.
 ├── dom/                        Optional shared pure business types if public outside repo.
 ├── internal/
 │   └── dom/                    Optional shared pure business types if only repo-internal.
@@ -249,19 +265,19 @@ modular-monolith/
 Rules for this variant:
 
 - `wire.go` is mandatory.
-- `integration_test.go` next to `wire.go` is recommended as the first place to smoke test the whole app.
-- The direct in-process API exposed to other packages is `port.App`, not the concrete `internal/app` type.
+- `integration_test.go` next to `wire.go` is recommended as the first place to smoke test
+  the whole app.
+- Other packages call the app through `port.InprocApp`,
+  not `port.App` and never the concrete `internal/app` type.
 - `port/` is public because it is the bounded-context contract.
 - `internal/app` stays private and implements `port.App`.
-- `cmd/*/main.go` stays thin and should only handle process concerns plus consuming the prepared values returned by `wire.go`.
-- In multi-app repositories, `main` may call `apps.Registry()` to assemble all applications and return a registry such as `type Registry struct { Example example_port.App; Other other_port.App; ... }`.
-- `apps/registry.go` is the composition root for all application modules in the repository and should not accumulate unrelated functionality.
-- Applications do not import each other directly. They collaborate through the registry.
-- Prefer passing only the needed part of another application's API through DI instead of keeping the whole registry as a global.
+- `cmd/*/main.go` stays thin and should only handle process concerns
+  plus consuming the prepared values returned by `wire.go`.
 - `api/*` defines wire formats between processes.
 - `port/*` defines the in-process contract of the application.
 - `internal/in/*` adapts `api/*` or transport-specific DTOs to `port.App`.
-- `internal/out/*` and `internal/dal/*` may depend on `api/*` when external wire formats are shared.
+- `internal/out/*` and `internal/dal/*` may depend on `api/*`
+  when external wire formats are shared.
 
 ## Ports
 
@@ -277,7 +293,8 @@ Prefer one `port.go` file containing all application-facing interfaces:
 Why:
 
 - In `Transaction Script` style, `Repo` methods often mirror `App` methods closely.
-- Reading all port interfaces together makes it easier to verify whether the available Out ports are sufficient to implement `App` methods.
+- Reading all port interfaces together makes it easier to verify
+  whether the available Out ports are sufficient to implement `App` methods.
 - Splitting interface files too early hides the contract surface.
 
 Optional split:
@@ -299,29 +316,70 @@ That means the default shape is either:
 Why this split matters:
 
 - if everything is still in one flat package, there is no package-boundary problem to solve yet
-- once `app` grows and wants helper subpackages, a `port.go` inside `app` starts pushing those subpackages to import `app` just to reach the contract
+- once `app` grows and wants helper subpackages, a `port.go` inside `app` starts pushing
+  those subpackages to import `app` just to reach the contract
 - at the same time, the top-level `app` package may need to import its own helper subpackages
-- that creates avoidable import-cycle pressure around the very contract that should stay dependency-light
+- that creates avoidable import-cycle pressure around the very contract
+  that should stay dependency-light
 
 So prefer these defaults:
 
-- **Flat**: keeping `port.go` and `app.go` in one package is fine because the app is intentionally flat
+- **Flat**: keeping `port.go` and `app.go` in one package is fine
+  because the app is intentionally flat
 - **default layout**: use `internal/port` + `internal/app`
 - **Importable**: use public `port/` + private `internal/app`
 
 Do not put `port` inside `app` as the default for non-flat layouts.
-If you do collapse them temporarily, treat it as a local simplification for a flat app, not as the growth path.
+If you do collapse them temporarily, treat it as a local simplification for a flat app,
+not as the growth path.
 
-### `App` is the direct application API
+### `App` and `InprocApp`
 
-For importable applications, direct in-process calls must go through `port.App`.
-Do not expose `internal/app` as public API.
+`port.App` is the business interface implemented by `internal/app`,
+called by the application's own inbound adapters.
+Never expose `internal/app` as public API.
 
-This is how:
+In the **Importable** layout `port` also declares `InprocApp`:
+the in-port for callers that reach the app in-process — a sibling app or a CLI command —
+rather than over the network.
+It is simply the hexagon's inbound adapter for the in-process transport,
+the peer of the gRPC/HTTP adapters.
 
-- modular monolith apps call each other directly
-- CLI entrypoints use the application without inventing a fake `in/cli` adapter
-- external integration tests introspect the app through public methods
+Such a caller must not invoke `port.App` directly — even for a method that needs no auth —
+because an inbound adapter has to run first:
+
+- it prepares the execution environment the business logic expects
+  (the middleware a network adapter applies: context setup, instrumentation, logging,
+  deadlines, admission/rate control — which may even reject the call);
+- it propagates out-of-band request metadata (request-id, trace-id, deadline, auth tokens)
+  so it keeps flowing when the business logic goes on to call further applications.
+
+`InprocApp` is the public part: the interface in-process callers depend on.
+The concrete adapter behind it is an ordinary thin inbound adapter —
+hand-written or generated from `port.App` —
+whose type name and package are an implementation detail, not part of the contract.
+
+How authenticated identity reaches the business logic shapes both interfaces.
+Prefer passing it as an explicit parameter on the `App` methods that need it
+(a `dom.Auth` value, say), rather than pulling it from the context inside `app`.
+An explicit parameter turns "forgot to check authorization" into a compile error
+instead of a silent omission, and keeps `app` free of transport-resolution logic.
+Resolving that identity — from a token, a session, or out-of-band request metadata —
+is the inbound adapter's job; it passes the resolved value in.
+This is exactly why `InprocApp` is not a verbatim copy of `App`:
+it omits the request-scoped inputs the adapter resolves (auth above all),
+so an in-process caller supplies only the business arguments.
+
+The flat and default layouts need no `InprocApp`:
+the app is reached only by its own executable, which calls `port.App` directly.
+`InprocApp` is more correct in any layout, but only in **Importable** is it _necessary_;
+elsewhere it is ceremony this architecture avoids.
+The little an in-process in-adapter does (context setup, metadata propagation)
+is minor enough for a single non-importable app that `main.go`/`wire.go` can carry it,
+without minting a separate `InprocApp` type.
+Even there, reach the app through public `port` interfaces
+(CLI without a fake `in/cli` adapter; tests through public methods),
+never `internal/app`.
 
 ### Repo is a transaction boundary
 
@@ -331,16 +389,19 @@ A separate `app/tx.go` layer is usually unnecessary.
 
 Use task-centric DAL methods that reflect business operations and their transactional needs.
 This usually gives clearer transaction boundaries than entity-shaped `Get/Save` repositories.
-It also allows SQL to be optimized for each business task instead of being distorted by ORM-like repository shapes.
+It also allows SQL to be optimized for each business task instead of being distorted
+by ORM-like repository shapes.
 
 Like `app`, the internal structure of `dal` is free to follow the actual persistence complexity.
-Start with one package, then split by files, helpers, or private subpackages only when that improves clarity.
+Start with one package, then split by files, helpers, or private subpackages
+only when that improves clarity.
 
 ## Adapters
 
 ### `internal/in/*`
 
-Use `internal/in/*` only for application-owned inbound adapters reached through transport or messaging.
+Use `internal/in/*` only for application-owned inbound adapters reached
+through transport or messaging.
 Typical examples:
 
 - HTTP
@@ -357,9 +418,10 @@ For CLI binaries:
 
 - treat `main.go` or `cmd/*/main.go` as the CLI adapter
 - wire the application in `wire.go`
-- call `port.App` directly
+- call the application's in-process API directly (`port.App`, or `port.InprocApp` when present)
 
-This avoids creating fake abstraction layers for Cobra, Kong, urfave/cli, and similar frameworks.
+This avoids creating fake abstraction layers
+for Cobra, Kong, urfave/cli, and similar frameworks.
 
 ### `internal/dal`
 
@@ -395,7 +457,8 @@ Its responsibility is wiring only:
 - prepare already-configured application and adapter objects
 - return values ready to be started or used by the caller
 
-Do not make `wire.go` start servers, background workers, or other lifecycle-managed processes by itself.
+Do not make `wire.go` start servers, background workers,
+or other lifecycle-managed processes by itself.
 That would make the same wiring harder to reuse from CLI code and integration tests.
 
 Do not put dependency graph construction into `main.go`.
@@ -409,10 +472,11 @@ Do not put dependency graph construction into `main.go`.
 ### Prefer one wiring entrypoint
 
 Recommend one main wiring entrypoint per application as the default.
-In practice, the API that is convenient for the application's own integration tests is often also the API that works well for:
+In practice, the API that is convenient for the application's own integration tests
+is often also the API that works well for:
 
-- `cmd/server/main.go`
-- `cmd/cli/main.go`
+- a single-application binary
+- a monolith binary with many applications
 - integration tests in other applications or repositories
 
 A single entrypoint helps keep the application boundary coherent.
@@ -420,18 +484,36 @@ Only introduce multiple wiring entrypoints when the concrete use cases truly div
 
 ### Design the returned value for all main consumers
 
-The main wiring entrypoint should usually return a value that can satisfy all key consumers with minimal adaptation:
+The main wiring entrypoint should usually return a value that can satisfy all key consumers
+with minimal adaptation:
 
-- CLI code needs direct access to `port.App`
+- CLI code needs direct access to the application's in-process API
 - server code needs the prepared inbound adapters or startable components
 - integration tests may need mock injection plus `port.App` access for introspection
 
 The stable rule is: make wiring explicit, reusable, testable, and separate from `main.go`.
-Do not optimize `wire.go` for one executable in a way that makes the same application harder to reuse elsewhere.
+Do not optimize `wire.go` for one executable
+in a way that makes the same application harder to reuse elsewhere.
+
+### Recommended wiring shape (reference)
+
+These rules leave the concrete shape open. A coherent, recommended (not required) shape is:
+
+- `Wire(ctx, startupCtx, cfg) (*Runtime, units, error)` — a long-lived base context,
+  a secondary startup context bounding wiring work only, the business config,
+  and a return of the assembled application plus its _startable_ units (servers, workers).
+- A `Runtime` value carrying the application boundary, its health/readiness,
+  the owned resources, and a single `Close`.
+- Startable unit descriptors instead of started goroutines, run by a small loop in `main`
+  that owns signals and graceful shutdown.
+
+This keeps `wire.go` reusable verbatim from a server, a CLI command, and integration tests.
+For the full reference implementation read `references/wiring-and-runtime.md`.
 
 ## Shared Domain Types
 
-Use shared pure business types only in repositories that contain multiple applications, for example `apps/*` modular monolith repositories.
+Use shared pure business types only in repositories that contain multiple applications,
+for example `apps/*` modular monolith repositories.
 Possible locations:
 
 - `dom/` when the shared types are part of public repo API
@@ -447,16 +529,21 @@ Good examples:
 Do not turn `dom/` into a generic dumping ground.
 It must stay pure and must not depend on ports, adapters, or infrastructure.
 
+When two applications form a dependency cycle,
+some DTO types must move to a shared-port (e.g. `internal/commonport/`) package to break it.
+Keep that package as a deliberate smell marker for the cycle,
+and prefer removing types from it over adding to it.
+
 ## Naming
 
 Prefer short, high-signal names for packages and frequently used identifiers.
-Short names matter most for packages that are referenced often in code. For package names that mostly stay in the directory tree and are rarely imported directly, clarity and local convention matter more.
+Short names matter most for packages that are referenced often in code.
+For package names that mostly stay in the directory tree and are rarely imported directly,
+clarity and local convention matter more.
 Recommended package names:
 
 - `dom`
 - `app`
-- `in`
-- `out`
 - `dal`
 - `srv`
 - `svc`
@@ -477,7 +564,8 @@ Prefer consistent generic filenames where the package already provides context:
 - `port.go` for the main port contract file
 - `wire.go` for wiring
 
-Prefer `New` as the main constructor name when the package name already explains what is being created.
+Prefer `New` as the main constructor name when the package name already explains
+what is being created.
 
 For an importable application package, an `app` suffix on the package itself
 (`apps/exampleapp`, `package exampleapp`) is optional but can be convenient:
@@ -491,39 +579,53 @@ If used, keep the bare context name for runtime identity
 - Test business logic with unit tests using mocks for Out ports.
 - Test In adapters with unit tests using a mock `port.App`.
 - Test DAL adapters with integration tests against a real temporary database.
-- Test other Out adapters with integration tests against fake or real network services started by the test.
+- Test other Out adapters with integration tests against fake or real network services
+  started by the test.
 - For services, add smoke tests that exercise:
   - each external API entrypoint
   - each subscriber or event-consumer type
 
-For importable applications, external repositories' tests may import the app and start it via public wiring APIs.
+For importable applications, external repositories' tests may import the app
+and start it via public wiring APIs.
 That is a valid use case and should shape the package mode choice.
 
 ## Modular Monolith Rules
 
-In repositories with multiple `apps/*`, treat each application as the same application module you would otherwise deploy as a separate service.
-Moving these modules into one binary changes transport and wiring, not ownership, dependency mapping, or interaction design.
+In repositories with multiple `apps/*`, treat each application as the same application module
+you would otherwise deploy as a separate service.
+Moving these modules into one binary changes transport and wiring, not ownership,
+dependency mapping, or interaction design.
 
-Use `apps/registry.go` as the in-process composition root for these modules.
-Typical shape:
+An `apps/apps.go` composition layer assembles these modules. It owns no bounded context itself.
+It is a composition root, not a service locator and not a place for unrelated business logic.
 
-```go
-package apps
+Mandatory guidelines:
 
-type Registry struct {
-	Example example_port.App
-	Other   other_port.App
-}
-```
+- Each application is an application module: keep its `port` boundary, ownership,
+  and interaction design exactly as if it were a separate service.
+- Cross-application data ownership still applies:
+  applications do not read each other's data directly from the database.
+  Enforce this operationally, for example with separate credentials even on a shared DB.
+- An app that needs a sibling depends on that sibling's `port.InprocApp`,
+  injected by the composition layer after wiring —
+  not on the whole composition layer.
+- Document the interaction map the same way you would for separate services
+  when it stops being obvious from the directory tree alone.
 
-Guidelines:
+### Recommended composition style (reference)
 
-- `main` or another top-level composition root may call `apps.Registry()` to assemble all applications.
-- `apps/registry.go` is a composition root, not a service locator and not a place for unrelated business logic.
-- `port.App` is the direct in-process API of an application module.
-- When one application needs another application's functionality, prefer taking the needed part through DI from the registry instead of accessing the entire registry as a global.
-- Cross-application data ownership still applies: applications do not read each other's data directly from the database. Enforce this operationally, for example with separate credentials even on a shared DB.
-- Document the interaction map the same way you would for separate services when it stops being obvious from the directory tree alone.
+The base idea (a composition root assembling modules) admits more than one implementation.
+A recommended (not required) one treats the composition layer as an _active accumulator_
+rather than a passive struct of boundary fields:
+
+- it wires the included apps in parallel and bounds startup with a shared startup context;
+- it collects each app's startable units, health, and closer,
+  exposing one aggregate `Close` and health;
+- it injects late cross-application dependencies once all apps exist,
+  via a `Setup` step on each app —
+  explicit two-phase init that also supports cyclic A↔B dependencies.
+
+For the full reference implementation read `references/modular-monolith.md`.
 
 ## Decision Checklist for Claude
 
@@ -533,15 +635,21 @@ When proposing a design or refactor, follow this checklist:
 2. Keep one `App` boundary for the whole bounded context.
 3. Keep one Repo/DAL port per owned DB.
 4. Make `wire.go` explicit and mandatory.
-5. Use `port.App` as the direct public API for importable apps.
+5. Expose importable apps through `port.InprocApp` (built on `port.App`), never `internal/app`.
 6. Do not create `internal/in/cli`.
 7. Keep adapters thin.
-8. Keep the package tree flat: prefer `in/`, `out/`, `dal/`, `app/` over deep `adapter/primary/secondary/...` trees.
-9. Introduce `dom/` or `internal/dom/` only for truly shared pure types in repositories with multiple applications.
-10. If `app` or `dal` grows, split by files first, then by helper subpackages, and only then question the bounded context.
-11. In modular monolith repositories, treat each application as an application module and use `apps/registry.go` as the composition root.
-12. Prefer DI from the registry over global registry access when wiring one application's dependency on another application's API.
-13. Document the application-module map when cross-application interactions stop being obvious from the directory tree.
+8. Keep the package tree flat: prefer `in/`, `out/`, `dal/`, `app/`
+   over deep `adapter/primary/secondary/...` trees.
+9. Introduce `dom/` or `internal/dom/` only for truly shared pure types in repositories
+   with multiple applications.
+10. If `app` or `dal` grows, split by files first, then by helper subpackages,
+    and only then question the bounded context.
+11. In modular monolith repositories, treat each application as an application module
+    and assemble them in an `apps/apps.go` composition layer.
+12. Inject a sibling's `port.InprocApp` after wiring,
+    not the whole composition layer.
+13. Document the application-module map when cross-application interactions stop being obvious
+    from the directory tree.
 
 ## What to Avoid
 
@@ -554,6 +662,8 @@ Avoid these default moves unless the specific case truly needs them:
 - putting all wiring into `main.go`
 - exposing concrete internal app types instead of `port.App`
 - placing importable application code under executable-local `internal/`
-- treating multi-app repositories as if applications should import each other's internal business logic directly
-- turning `apps/registry.go` into a generic dumping ground or service locator
-- defaulting to global registry access when a narrower dependency can be injected from the registry
+- treating multi-app repositories as if applications should import each other's
+  internal business logic directly
+- turning the `apps/apps.go` composition layer into a generic dumping ground or service locator
+- handing an app the whole composition layer
+  instead of the specific sibling `port.InprocApp`(s) it needs
