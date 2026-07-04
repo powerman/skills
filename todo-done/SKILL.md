@@ -6,7 +6,7 @@ license: MIT
 compatibility: Designed for any AI coding agent with shell access; removes notes from a self-managed git repo under ~/.todo/.
 metadata:
   author: powerman
-  version: '0.2.0'
+  version: '0.3.0'
 ---
 
 # /todo-done
@@ -57,6 +57,11 @@ The deletion is committed, so the note stays recoverable from the notes repo's g
    - look for correctness issues an executor could plausibly have introduced
      (wrong edge-case handling, skipped error paths,
      signatures that drifted from what the Plan specified);
+   - scrutinize every test change for hollow assertions that look useful but verify nothing
+     (asserting on a mock's own return, re-asserting a literal the test just set,
+     tests that pass regardless of the code under test, or missing the case that would fail);
+     this matters because execution sessions often run on a weaker model
+     that readily produces tests which merely look thorough;
    - confirm format/lint/test actions required by the project were actually run and pass,
      not merely assumed.
 
