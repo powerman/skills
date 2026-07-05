@@ -6,7 +6,7 @@ license: MIT
 compatibility: Designed for Claude Code or similar AI coding agents, and for Go CLI and backend service applications. For reusable libraries, prefer library-focused Go skills instead of this application-architecture skill.
 metadata:
   author: powerman
-  version: '0.5.0'
+  version: '0.6.0'
 ---
 
 # Bounded-Context Hexagonal
@@ -341,7 +341,7 @@ To stay universally importable without cycles it must sit at the **leaf tier**
 and import only the standard library, pure value/vocabulary libraries
 that behave like extended stdlib (value semantics, no I/O or transport,
 no dependency on this repo's apps or app-code — e.g. a leak-safe secret handle or a ULID type),
-and the two shared leaf packages `dom` and `commonport` (see Shared Domain Types).
+and the two shared leaf packages `dom` and `xport` (see Shared Domain Types).
 Those two exhaust the shared-leaf need, so avoid inventing a third.
 
 It must NOT import another application's `port`, any adapters,
@@ -350,14 +350,14 @@ Avoid even an acyclic `port → other-port` edge:
 since cyclic in-process app dependencies are normal,
 it turns a future cycle into a compile break in the worst place.
 Express a cross-app dependency instead as an interface in leaf terms,
-owned by the consumer's `port` or by `commonport`,
+owned by the consumer's `port` or by `xport`,
 with the implementation injected at the composition root —
 so a `port` never names a sibling's `port` or any app-code.
 
 The rule constrains the contract's architectural dependencies
 (app-code, adapters, other apps' ports), not third-party test libraries.
 Where generated mocks live is a free choice it does not touch:
-co-locating a mock with its interface — in `port` or `commonport` — is fine.
+co-locating a mock with its interface — in `port` or `xport` — is fine.
 
 ### `App` and `InprocApp`
 
@@ -557,9 +557,11 @@ It must stay pure and must not depend on ports, adapters, or infrastructure.
 
 ## Shared Application Types
 
-`internal/commonport` is the second shared leaf package:
+`internal/xport` is the second shared leaf package:
 the neutral home for a contract that some apps' `port` must reference
 but that no single app's `port` can or should own.
+The name reads as the cross(-app) `port` tier —
+contracts that span apps rather than belonging to any one app's `port`.
 Litmus: if exactly one app can own it, it belongs in that app's `port`, not here.
 Two kinds live there, with opposite rationales:
 
@@ -571,7 +573,7 @@ Two kinds live there, with opposite rationales:
   in either `port` (the two would import each other); moving them here breaks the cycle.
   Prefer removing these over adding them.
 
-Keep `commonport` a leaf holding interfaces and DTO/value types, not implementations.
+Keep `xport` a leaf holding interfaces and DTO/value types, not implementations.
 
 ## Naming
 

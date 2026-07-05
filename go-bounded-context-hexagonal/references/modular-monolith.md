@@ -108,11 +108,12 @@ only the `InprocApp` interface is part of the public contract.
 
 ## Shared packages between apps
 
-`internal/dom` and `internal/commonport` are the two shared **leaf** packages a `port` may import:
+`internal/dom` and `internal/xport` are the two shared **leaf** packages a `port` may import:
 
 - **`internal/dom`** — shared pure business types (identity, money, etc.).
   No dependency on ports/adapters/infrastructure. The default home for shared types.
-- **`internal/commonport`** — contracts a `port` must reference but no single app's `port` owns:
+- **`internal/xport`** — the cross(-app) `port` tier:
+  contracts a `port` must reference but no single app's `port` owns —
   cycle-forced DTOs (a smell marker — minimize) and cross-cutting DIP interfaces.
   A leaf: interfaces and DTO/value types only, no implementations.
 
