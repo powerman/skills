@@ -6,7 +6,7 @@ license: MIT
 compatibility: Designed for Claude Code or similar AI coding agents, and for Go CLI and backend service applications. For reusable libraries, prefer library-focused Go skills instead of this application-architecture skill.
 metadata:
   author: powerman
-  version: '0.4.0'
+  version: '0.5.0'
 ---
 
 # Bounded-Context Hexagonal
@@ -560,6 +560,7 @@ It must stay pure and must not depend on ports, adapters, or infrastructure.
 `internal/commonport` is the second shared leaf package:
 the neutral home for a contract that some apps' `port` must reference
 but that no single app's `port` can or should own.
+Litmus: if exactly one app can own it, it belongs in that app's `port`, not here.
 Two kinds live there, with opposite rationales:
 
 - **Cross-cutting DIP interfaces — deliberate and healthy.**
