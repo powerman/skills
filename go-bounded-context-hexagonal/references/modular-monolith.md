@@ -108,17 +108,20 @@ only the `InprocApp` interface is part of the public contract.
 
 ## Shared packages between apps
 
+`internal/dom` and `internal/commonport` are the two shared **leaf** packages a `port` may import:
+
 - **`internal/dom`** — shared pure business types (identity, money, etc.).
   No dependency on ports/adapters/infrastructure. The default home for shared types.
-- When two apps form a dependency cycle, some DTO types must move to a shared package
-  (e.g. `internal/commonport`) to break it.
-  Keep that package as a deliberate _smell marker_ for the cycle,
-  and prefer removing types from it over adding them.
+- **`internal/commonport`** — contracts a `port` must reference but no single app's `port` owns:
+  cycle-forced DTOs (a smell marker — minimize) and cross-cutting DIP interfaces.
+  A leaf: interfaces and DTO/value types only, no implementations.
 
 ## What imports what
 
-- An app **may** import a sibling's `port` package — its contract types, errors,
-  and its `InprocApp` interface. That is the published contract.
+- An app's **app-code** (adapters, `wire.go`) may import a sibling's `port` —
+  its contract types, errors, and `InprocApp` interface (the published contract).
+  Its own **`port`** may not: a `port` stays on the leaf tier
+  and never imports another app's `port`.
 - The _live_ sibling dependency is injected by the composition layer after wiring (`Setup`),
   not reached as a global. Inject the specific sibling `InprocApp`(s) an app needs
   (the full interface), not the whole accumulator with all apps.
