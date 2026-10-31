@@ -6,7 +6,7 @@ license: MIT
 compatibility: Designed for Claude Code or similar AI coding agents, and for projects using Golang.
 metadata:
   author: powerman
-  version: '0.0.5'
+  version: '0.0.6'
 ---
 
 # Go Engineering Policy
@@ -326,6 +326,21 @@ client, err := NewClient(Config{
 })
 ```
 
+## Code Generation from Go Interfaces
+
+Use templates for [mockery](https://github.com/vektra/mockery) v3
+to generate any code derived from Go interfaces (stateful fakes, adapters, wrappers),
+instead of adding a dedicated generator for each kind of code:
+mockery loads packages, types and imports, and a template defines only the generated code.
+
+List interfaces in `.mockery.yml`, not in `//mockery:` directives:
+this config exists anyway, so directives would spread the configuration over source files,
+and each type would need 3-4 of them.
+
+Choose the output location for each case:
+it may be the interface's package, a `xxxtest` package, a public API, `_test.go` files
+or even another Go module.
+
 ## Golang Testing
 
 - Tests must only test the project's own code, not stdlib or third-party libraries.
@@ -341,9 +356,11 @@ client, err := NewClient(Config{
 - Extensively use test helpers to reduce code duplication within and between tests.
 - Use [gomock](https://go.uber.org/mock/mockgen) by default for interaction-based tests,
   where the assertions are about exact calls, arguments, call counts, matchers, or ordering.
-- Use [go-mockgen](https://github.com/unknwon/go-mockgen) for stateful fakes,
+- Use the mockery template
+  [`fake`](https://pkg.go.dev/github.com/powerman/mockery-templates/fake) for stateful fakes,
   when tests are clearer as world-state transitions than as long `EXPECT()` chains,
   especially when a dependency needs default behavior plus queued per-call overrides
   and optional post-hoc inspection of call history.
-  List interface names explicitly with `-i` in `//go:generate`,
-  because stateful mocks are expected to be relatively rare.
+  Keep the state in an in-memory implementation passed to `NewFakeXFrom`,
+  or in a test helper which embeds the fake and changes the state from `SetDefaultHook`.
+  Assert on that state and inject failures with `PushReturn`.
