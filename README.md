@@ -11,6 +11,8 @@ and any agent that supports the Agent Skills specification.
 | ------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
 | [go-bounded-context-hexagonal](go-bounded-context-hexagonal/) | Bounded-Context Hexagonal Go application architecture — package layout, ports/adapters, wiring, and modular monolith patterns |
 | [go-engineering-policy](go-engineering-policy/)               | Go engineering policies and coding conventions — constructors, variable scope, project structure, and style overrides         |
+| [mise-toml-style](mise-toml-style/)                           | Style of mise.toml and mise tasks — a task per step, run strings vs groups vs depends, sh not bash, verified behaviour        |
+| [project-scripts](project-scripts/)                           | Policy for scripts of a project — inline in mise.toml, shell in mise/tasks/, or Go in scripts/, and how Go scripts work       |
 | [todo-plan](todo-plan/)                                       | Create a throwaway TODO working note for a multi-step task — agreed Plan + Progress checklist, ready to hand off to execution |
 | [todo](todo/)                                                 | Resume a TODO working note (primary command) — no arg lists open notes to pick from, or pass a slug to continue               |
 | [todo-done](todo-done/)                                       | Finish a TODO — verify its knowledge was extracted into docs/comments/commit, then delete the note                            |

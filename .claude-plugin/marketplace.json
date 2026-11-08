@@ -15,6 +15,16 @@
       "description": "Go engineering policies and coding conventions — constructors, variable scope, project structure, and style overrides."
     },
     {
+      "name": "mise-toml-style",
+      "source": "./mise-toml-style",
+      "description": "Style of mise.toml and mise tasks — a task per step, run strings vs groups vs depends, safe order of readers and writers, sh instead of bash, sources/outputs, and verified mise behaviour."
+    },
+    {
+      "name": "project-scripts",
+      "source": "./project-scripts",
+      "description": "Policy for scripts of a project — inline in mise.toml, shell in mise/tasks/, or Go in scripts/; layout, tasks, tests and coverage of Go scripts."
+    },
+    {
       "name": "todo-plan",
       "source": "./todo-plan",
       "description": "Create a throwaway TODO working note for a multi-step task — capture the agreed Plan and an empty Progress checklist for hand-off to execution."

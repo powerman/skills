@@ -1,0 +1,70 @@
+# Parts of the root mise.toml which serve Go scripts.
+# Tasks of the project itself (fmt:*, lint:*, test:*, …) are omitted.
+
+[task_config]
+includes = ['mise/tasks', 'scripts/tasks.toml']
+
+
+[tools]
+go = 'latest'
+# A specification for CLIs.
+# - Used in Go tests for Kong CLI.
+usage = 'latest'
+
+#--- Generate
+# MockGen generates mock implementations of Go interfaces.
+'go:go.uber.org/mock/mockgen' = 'latest'
+
+#--- Lint
+# Fast linters runner for Go.
+golangci-lint = '2.15' # Version must match .golangci.yml.
+
+#--- Test
+# 'go test' runner with output optimized for humans.
+gotestsum = 'latest'
+
+
+[vars]
+scripts_cover = '.cache/scripts.cover.out'
+
+
+[tasks.bump]
+description = 'Upgrade everything'
+# Avoid `run=[{ task = … }]` here to make sure commands will use tools updated by `mise up`.
+run = '''
+mise up --local
+mise run scripts:bump
+'''
+
+[tasks.generate]
+description = 'Generate everything'
+depends = ['generate:*', 'scripts:generate']
+
+[tasks.fmt]
+description = 'Format everything'
+# Configs of formatters are YAML and TOML files too,
+# and a formatter must not read a config while it's being rewritten.
+run = [
+    { task = 'fmt:yaml' },
+    { task = 'fmt:toml' },
+    { tasks = ['fmt:*', 'scripts:fmt'] },
+]
+
+[tasks.lint]
+description = 'Lint everything'
+depends = ['lint:*', 'scripts:lint']
+
+[tasks.test]
+description = 'Run all tests'
+depends = ['test:*', 'scripts:test']
+
+[tasks.hello]
+description = 'Print a greeting (example of a task in Go)'
+depends = ['scripts:build']
+usage = 'mount run="mise run -q hello --usage-spec"'
+raw_args = true
+run = '.cache/bin/hello'
+
+[tasks.cachedir]
+hide = true
+run = 'mkdir -p .cache'
