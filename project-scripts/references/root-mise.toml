@@ -12,6 +12,8 @@ go = 'latest'
 usage = 'latest'
 
 #--- Generate
+# Generates code from Go interfaces using templates (used for mocks and adapters).
+'go:github.com/vektra/mockery/v3' = 'latest'
 # MockGen generates mock implementations of Go interfaces.
 'go:go.uber.org/mock/mockgen' = 'latest'
 
@@ -64,6 +66,7 @@ depends = ['scripts:build']
 usage = 'mount run="mise run -q hello --usage-spec"'
 raw_args = true
 run = '.cache/bin/hello'
+run_windows = '.cache\bin\hello' # Only in a project which supports Windows.
 
 [tasks.cachedir]
 hide = true
