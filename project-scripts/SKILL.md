@@ -6,7 +6,7 @@ license: MIT
 compatibility: Designed for Claude Code or similar AI coding agents, and for projects using mise and Go.
 metadata:
   author: powerman
-  version: '0.3.0'
+  version: '0.3.1'
 ---
 
 # Project Scripts
@@ -277,6 +277,9 @@ and `go.mod` would get the Go version from before the upgrade.
 `scripts:generate` deletes outputs of mockery before running it:
 mockery fails to load a package with an outdated output.
 `scripts:lint` also lints usage specs of all binaries by `usage lint`.
+It hides "No issues found." of passing specs by repeating the run only for a failing spec;
+once [jdx/usage#1638](https://github.com/jdx/usage/issues/1638) adds `usage lint -q`,
+the loop body becomes `"$f" --usage-spec | usage lint -q -W -`.
 
 Reference files (copy and adapt):
 
