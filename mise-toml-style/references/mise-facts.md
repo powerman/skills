@@ -99,7 +99,8 @@ re-running a toy in the same directory within a second gave inconsistent results
   until they change.
 - `outputs = ['dir/*']`: deleting the whole directory reruns, deleting one of its files doesn't.
 - Any edit of the config file which defines the task reruns it, even of an unrelated comment.
-- An absolute path in `outputs` (e.g. `{{config_root}}/…`) works.
+- An absolute path in `outputs` (e.g. `{{config_root}}/…`) works,
+  also one from a variable of `[env]` (`{{env.X}}/*`) in an included task file.
 - `silent = "stdout"` hides "sources up-to-date, skipping" and keeps compile errors;
   `silent = true` hides compile errors too.
 - 6 parallel `mise run` after a change of sources all got the new build.
@@ -120,10 +121,20 @@ re-running a toy in the same directory within a second gave inconsistent results
 
 - A top-level run of one task with groups has no prefixes on the output of leaves.
 - `depends` with 2+ leaves gives prefixes like `[lint:a] …`.
+- The exit status of a failed task is the exit status of `mise run`.
+  mise also prints `[<task>] ERROR task failed` to stderr on any non-zero status;
+  `-q`, `-S` and `MISE_SILENT` don't hide it.
 
 ## Costs
 
-- A fresh hidden build task in `depends` adds about 0–3 ms to `mise run`.
-- `{ task = … }` in `run` costs about 33 ms per step, even for a task which runs `true`.
-- A nested `mise run -q x` inside a task costs about 60 ms per call;
-  starting a prebuilt binary directly costs about 2 ms.
+Each task mise runs costs tens of milliseconds:
+mise resolves tools and env once more for it, without starting processes.
+The cost grows with the number of tools, global tools of the developer included,
+so numbers below differ between machines.
+
+- Each task in the graph (`depends`, `{ task = … }`) costs about 20–30 ms,
+  even a build task which is skipped by `sources`.
+- A nested `mise run -q x` inside a task, where `x` depends on such a build task
+  and starts a prebuilt program, costs about 100 ms per call;
+  starting the program directly costs about 3 ms.
+- `MISE_OFFLINE`, `MISE_PREFER_OFFLINE` and `task.run_auto_install = false` don't change it.

@@ -26,6 +26,10 @@ golangci-lint = '2.15' # Version must match .golangci.yml.
 gotestsum = 'latest'
 
 
+[env]
+SCRIPTS_BIN = '{{config_root}}/.cache/scripts' # Go scripts built by scripts:build.
+
+
 [vars]
 scripts_cover = '.cache/scripts.cover.out'
 
@@ -65,8 +69,8 @@ description = 'Print a greeting (example of a task in Go)'
 depends = ['scripts:build']
 usage = 'mount run="mise run -q hello --usage-spec"'
 raw_args = true
-run = '.cache/bin/hello'
-run_windows = '.cache\bin\hello' # Only in a project which supports Windows.
+run = '"${SCRIPTS_BIN:?}/hello"'
+run_windows = '"%SCRIPTS_BIN%\hello"' # Only in a project which supports Windows.
 
 [tasks.cachedir]
 hide = true

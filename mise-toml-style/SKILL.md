@@ -6,7 +6,7 @@ license: MIT
 compatibility: Designed for Claude Code or similar AI coding agents, and for projects using mise.
 metadata:
   author: powerman
-  version: '0.1.0'
+  version: '0.1.1'
 ---
 
 # mise.toml Style
@@ -62,6 +62,9 @@ has `quiet = true`.
 - **A grouping task without shell commands, whose tasks are safe to run in parallel,
   has `depends` instead of `run`** (e.g. `depends = ['lint:*']` of task `lint`).
 - `{ task = … }` is the cheapest way to run tasks one after another.
+- Each task mise runs costs tens of milliseconds (more with more tools of the developer),
+  so a program which runs many times (e.g. once per file) is started directly,
+  not by a task of its own.
 - A nested `mise run` starts mise once more and costs about twice as much as `{ task = … }`,
   so it's used only when a step must see tools changed by an earlier step:
   `mise up` followed by a task which needs the upgraded tool.

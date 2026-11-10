@@ -1,12 +1,12 @@
 ---
 name: project-scripts
-description: 'Personal policy for scripts of a project — where a script lives (inline in mise.toml, a shell file in mise/tasks/, or a Go program in scripts/), when shell must be rewritten in Go, and how Go scripts are laid out, built, run as mise tasks, tested, linted and covered. Use it whenever you write, move, review or plan a script or a mise file task, add or change scripts/, port a shell script to Go, want to add a test or a shared library to a script, or decide whether a project needs shfmt/shellcheck — even if the user only says "add a task which does X" or "this script got too complex".'
+description: 'Personal policy for scripts of a project — where a script lives (inline in mise.toml, a shell file in mise/tasks/, or a Go program in scripts/), when shell must be rewritten in Go, and how Go scripts are laid out, built, run by tasks and by each other, tested, linted and covered. Use it whenever you write, move, review or plan a script or a mise file task, add or change scripts/, port a shell script to Go, want to add a test or a shared library to a script, make one script or task run another, or decide whether a project needs shfmt/shellcheck — even if the user only says "add a task which does X" or "this script got too complex".'
 user-invocable: true
 license: MIT
 compatibility: Designed for Claude Code or similar AI coding agents, and for projects using mise and Go.
 metadata:
   author: powerman
-  version: '0.2.0'
+  version: '0.3.0'
 ---
 
 # Project Scripts
@@ -128,11 +128,14 @@ includes = ['mise/tasks', 'scripts/tasks.toml']
 
 The name `scripts/` describes the role (automation of the routine of the project),
 not the language.
-It isn't `mise/go/`: Go scripts don't depend on mise and can be run by hand or on CI.
+It isn't `mise/go/`: Go scripts don't depend on mise and can be run without it (e.g. on CI).
 
 ### Program
 
-- A program of task `<task-name>` is `scripts/<task-name>/` (`:` in the name becomes `-`).
+- A program whose binary is run by hand is `scripts/<task-name>/` of its task
+  (`:` in the name becomes `-`).
+  A program whose binary only tasks and other binaries run has no task (see "Task")
+  and is named by what it does.
   Shared code lives in `scripts/internal/`.
   These names are a current choice.
 - A program follows the flat layout of the `go-bounded-context-hexagonal` skill:
@@ -144,7 +147,10 @@ It isn't `mise/go/`: Go scripts don't depend on mise and can be run by hand or o
 - The Kong struct is the only spec of the CLI.
   It has a field `UsageSpec kongusage.Flag` (`github.com/powerman/kongusage`)
   which prints the usage spec for mise, and a test checks the spec by `kongusage.CheckSpec`.
-  `kong.Name` is the task name: the binary is named by its directory.
+  A program without a task has it too:
+  `scripts:lint` checks specs of all binaries, and a task added later needs no change.
+  `kong.Name` is the name of the task, or of the program if it has no task:
+  the binary is named by its directory.
 - `main.go` binds `App` made by `WireApp` to Kong
   (`ctx.BindTo(internal.WireApp(), (*internal.App)(nil))`),
   so a test of the CLI binds a mock instead.
@@ -187,9 +193,46 @@ Generated Fakes and Mocks are `_test.go` files of package `internal_test` next t
 and the template is a copy of `fake` from `github.com/powerman/mockery-templates`
 in `scripts/.mockery/`.
 
+### Running binaries
+
+`scripts:build` builds a binary of each program into the directory
+which the root `mise.toml` gives to every task and binary:
+
+```toml
+[env]
+SCRIPTS_BIN = '{{config_root}}/.cache/scripts' # Go scripts built by scripts:build.
+```
+
+Tasks and binaries find binaries only by this variable:
+it works from any `dir`, and it's the only place which names the directory.
+
+- A task which runs a binary has `depends = ['scripts:build']`
+  and starts it as `"${SCRIPTS_BIN:?}/<name>"`, even many times in a loop:
+  a start takes a few milliseconds.
+  `scripts:build` rebuilds binaries only when files of `scripts/` change.
+  `go run` isn't used: its own check of changes takes much longer.
+- A binary starts another binary as `filepath.Join(os.Getenv("SCRIPTS_BIN"), "<name>")`,
+  without a build: the task which started it has built all binaries.
+  `wire.go` reads the variable and passes it to the real `World`,
+  so an integration test sets its own directory,
+  and the real `World` fails when it's empty: `exec` would look up the bare name in `PATH`.
+- Tasks and binaries don't run a binary by a nested `mise run` or `{ task = … }`:
+  - each task mise runs costs tens of milliseconds, because it resolves tools and env once more,
+    and the cost grows with the number of tools, global tools of the developer included;
+    a nested `mise run` of a binary costs about 100 ms against about 3 ms of a direct start;
+  - mise prints `[<task>] ERROR task failed` on any non-zero exit status,
+    even on one which is a normal result of the binary (e.g. "conflicts are left"),
+    and no flag hides it.
+- `SCRIPTS_BIN` isn't put into `PATH`.
+  Binaries have short common names (`test`, `build`, `install`),
+  which would shadow commands in every task, in the activated shell of the developer
+  and in everything started from it (git would even take `git-foo` as its subcommand).
+- `scripts:build` owns `.cache/scripts/` and removes binaries of removed programs from it,
+  so nothing else is put there.
+
 ### Task
 
-A task in Go is a one-liner in `mise.toml`:
+A binary which is run by hand has a task, a one-liner in `mise.toml`:
 
 ```toml
 [tasks.hello]
@@ -197,19 +240,17 @@ description = 'Print a greeting'
 depends = ['scripts:build']
 usage = 'mount run="mise run -q hello --usage-spec"'
 raw_args = true
-run = '.cache/bin/hello'
+run = '"${SCRIPTS_BIN:?}/hello"'
 ```
 
-- `scripts:build` rebuilds programs into `.cache/bin/` only when files of `scripts/` change,
-  so a start takes a few milliseconds.
-  `go run` isn't used: its own check of changes takes much longer.
-- Another task which runs a program does the same (`depends` and `.cache/bin/…`):
-  `mise run` or `{ task = … }` would add tens of milliseconds to each start.
-- A program started outside of mise may be outdated:
-  run `mise run scripts:build` before running it many times by hand.
+The task rebuilds the binary before each run and completes its arguments,
+so it's the only way to run the binary by hand.
+A binary which only tasks and other binaries run has no task, not even a hidden one:
+they start it directly, so a task would add nothing.
+
 - mise runs the `usage` command only to complete arguments of this task,
   so the spec is never stale and a broken spec breaks completion of only this task.
-  Each Tab on arguments of the task checks for changes (maybe builds) and starts the program,
+  Each Tab on arguments of the task checks for changes (maybe builds) and starts the binary,
   which takes a few tens of milliseconds.
 - `raw_args = true` makes mise pass arguments as is instead of parsing them by the spec,
   so `--help` and invalid flags reach Kong.
@@ -235,7 +276,7 @@ and `go.mod` would get the Go version from before the upgrade.
 
 `scripts:generate` deletes outputs of mockery before running it:
 mockery fails to load a package with an outdated output.
-`scripts:lint` also lints usage specs of all programs by `usage lint`.
+`scripts:lint` also lints usage specs of all binaries by `usage lint`.
 
 Reference files (copy and adapt):
 
@@ -251,10 +292,11 @@ A project which doesn't support Windows has no `run_windows` in tasks of scripts
 
 In a project which supports Windows:
 
-- mise runs inline scripts by `cmd /c` on Windows, which can't run `.cache/bin/hello`,
-  so a task which runs a program has `run_windows = '.cache\bin\hello'`.
+- mise runs inline scripts by `cmd /c` on Windows, which doesn't expand `$SCRIPTS_BIN`,
+  so a task which runs a binary has `run_windows = '"%SCRIPTS_BIN%\hello"'`.
 - Tasks needed to run and test scripts (`scripts:build`, `scripts:build:clean`, `scripts:test`)
-  work in cmd too, with PowerShell in `run_windows` where POSIX sh is needed.
+  work in cmd too, with `run_windows` where they use sh:
+  `%SCRIPTS_BIN%` instead of `$SCRIPTS_BIN`, PowerShell instead of a loop.
   Other tasks to develop scripts may need POSIX sh (e.g. Git Bash).
 - Git returns paths with `/`, while arguments may use `\`:
   convert them by `filepath.ToSlash` before comparing.
@@ -262,9 +304,10 @@ In a project which supports Windows:
   so CI on Windows installs only tools of scripts (`install_args` of `jdx/mise-action`)
   and sets `MISE_AUTO_INSTALL=false`, so `mise run` doesn't try to install others.
 
-A program doesn't need mise,
+A binary doesn't need mise,
 so CI may build and test scripts by Go alone on platforms of the project without mise.
-There `KONGUSAGE_TEST_SKIP_USAGE=1` makes the test of the spec skip the missing tool `usage`.
+There `KONGUSAGE_TEST_SKIP_USAGE=1` makes the test of the spec skip the missing tool `usage`,
+and CI sets `SCRIPTS_BIN` itself to build and run binaries.
 
 ### Coverage of scripts
 
