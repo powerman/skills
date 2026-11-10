@@ -1,12 +1,11 @@
 ---
 name: go-engineering-policy
 description: 'Mandatory Go engineering policies and conventions. REQUIRED for ALL Go coding work — writing, refactoring, reviewing, generating, testing, or discussing Go code, including any change to .go files. Overrides generic Go style and lint guidance on conflicting rules.'
-user-invocable: true
 license: MIT
 compatibility: Designed for Claude Code or similar AI coding agents, and for projects using Golang.
 metadata:
   author: powerman
-  version: '0.0.6'
+  version: '0.0.7'
 ---
 
 # Go Engineering Policy

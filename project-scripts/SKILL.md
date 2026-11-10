@@ -1,12 +1,11 @@
 ---
 name: project-scripts
 description: 'Personal policy for scripts of a project — where a script lives (inline in mise.toml, a shell file in mise/tasks/, or a Go program in scripts/), when shell must be rewritten in Go, and how Go scripts are laid out, built, run by tasks and by each other, tested, linted and covered. Use it whenever you write, move, review or plan a script or a mise file task, add or change scripts/, port a shell script to Go, want to add a test or a shared library to a script, make one script or task run another, or decide whether a project needs shfmt/shellcheck — even if the user only says "add a task which does X" or "this script got too complex".'
-user-invocable: true
 license: MIT
 compatibility: Designed for Claude Code or similar AI coding agents, and for projects using mise and Go.
 metadata:
   author: powerman
-  version: '0.3.2'
+  version: '0.3.3'
 ---
 
 # Project Scripts

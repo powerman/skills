@@ -1,5 +1,6 @@
 {
-  "name": "powerman/skills",
+  "name": "powerman-skills",
+  "description": "Personal agent skills: Go architecture and engineering policy, mise.toml style and project scripts, and a TODO workflow for multi-step tasks.",
   "owner": {
     "name": "Powerman"
   },

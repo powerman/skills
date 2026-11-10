@@ -1,0 +1,90 @@
+# jdx/mise-action installs only releases older than a day, so a newer one would fail CI.
+min_version = '2026.10.19'
+
+[settings]
+lockfile = true # DO NOT FORGET TO `touch mise.lock` if mise.lock does not exist!
+pipx.uvx = false # Avoid .mise/locks/** sidecars required by default uv.
+
+
+[tools]
+python = 'latest'
+pipx = 'latest'
+
+#--- Format
+# A shell formatter.
+shfmt = 'latest'
+
+#--- Lint
+# Claude Code is an agentic coding tool that lives in your terminal.
+# - Used to validate the plugin marketplace.
+claude = 'latest'
+# Command-line JSON processor.
+jq = 'latest'
+# Reference library for Agent Skills.
+'pipx:skills-ref' = 'latest'
+# A static analysis tool for shell scripts.
+shellcheck = 'latest'
+# A TOML toolkit written in Rust.
+taplo = 'latest'
+# A portable command-line YAML, JSON, XML, CSV, TOML and properties processor.
+yq = 'latest'
+
+
+[tasks.default]
+description = 'Run all formatters and linters'
+run = [{ task = 'fmt' }, { task = 'lint' }]
+
+[tasks.fmt]
+description = 'Format all files'
+depends = ['fmt:*']
+
+[tasks.lint]
+description = 'Run all linters'
+depends = ['lint:*']
+
+[tasks.ci]
+description = 'Run all CI tasks'
+depends = ['lint']
+
+[tasks.'fmt:sh']
+description = 'Format shell scripts'
+hide = true
+run = 'shfmt --write --indent 4 --simplify mise'
+
+[tasks.'lint:plugins']
+description = 'Validate the plugin marketplace by Claude Code'
+hide = true
+sources = ['.claude-plugin/*', '*/SKILL.md', 'mise.lock']
+run = 'claude plugin validate .'
+
+[tasks.'lint:sh']
+description = 'Check formatting of shell scripts and lint them'
+hide = true
+run = '''
+shfmt --diff --indent 4 --simplify mise
+shfmt --find mise | xargs -d "\n" -r -n 1 -P 8 shellcheck -x
+'''
+
+[tasks.'lint:skills']
+description = 'Validate skills against the Agent Skills specification'
+hide = true
+sources = ['*/SKILL.md', 'mise.lock']
+# Only errors are shown: they go to stderr, while each valid skill is reported to stdout.
+run = '''
+for f in */SKILL.md; do
+    agentskills validate "${f%/SKILL.md}" >/dev/null
+done
+'''
+
+[tasks.'lint:toml']
+description = 'Check syntax of TOML files'
+hide = true
+sources = ['**/*.toml', 'mise.lock']
+env.RUST_LOG = 'warn' # Hide INFO logs of taplo.
+run = "git ls-files -z -co --exclude-standard '*.toml' | xargs -0 -r taplo lint"
+
+[tasks.'lint:yaml']
+description = 'Check syntax of YAML files'
+hide = true
+sources = ['**/*.yml', '**/*.yaml', 'mise.lock']
+run = "git ls-files -z -co --exclude-standard '*.yml' '*.yaml' | xargs -0 -r yq . >/dev/null"

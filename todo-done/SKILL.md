@@ -1,12 +1,11 @@
 ---
 name: todo-done
 description: Finish a TODO — review the resulting change against the Plan, verify its durable knowledge (Plan rationale, Progress deviations) was moved into docs, code comments, or the commit/PR, then delete the working note. With no argument it lists open notes (most-recently-modified first) and asks which to retire.
-user-invocable: true
 license: MIT
 compatibility: Designed for any AI coding agent with shell access; removes notes from a self-managed git repo under ~/.todo/.
 metadata:
   author: powerman
-  version: '0.3.0'
+  version: '0.3.1'
 ---
 
 # /todo-done

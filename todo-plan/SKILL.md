@@ -1,12 +1,11 @@
 ---
 name: todo-plan
 description: Create a throwaway TODO working note for a multi-step task — capture the agreed Plan and an empty Progress checklist under ~/.todo/<project>/<slug>.md. Use at the end of a planning discussion, before handing execution to another session or model.
-user-invocable: true
 license: MIT
 compatibility: Designed for any AI coding agent with shell access; stores notes in a self-managed git repo under ~/.todo/.
 metadata:
   author: powerman
-  version: '0.2.0'
+  version: '0.2.1'
 ---
 
 # /todo-plan

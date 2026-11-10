@@ -39,8 +39,8 @@ npx skills add powerman/skills --skill go-bounded-context-hexagonal -a claude-co
 
 ```shell
 /plugin marketplace add powerman/skills
-/plugin install go-bounded-context-hexagonal@powerman/skills
-/plugin install go-engineering-policy@powerman/skills
+/plugin install go-bounded-context-hexagonal@powerman-skills
+/plugin install go-engineering-policy@powerman-skills
 ```
 
 ### Project-level auto-setup
@@ -50,7 +50,7 @@ Add to `.claude/settings.json`:
 ```json
 {
   "extraKnownMarketplaces": {
-    "powerman/skills": {
+    "powerman-skills": {
       "source": {
         "source": "github",
         "repo": "powerman/skills"
@@ -58,8 +58,8 @@ Add to `.claude/settings.json`:
     }
   },
   "enabledPlugins": {
-    "go-bounded-context-hexagonal@powerman/skills": true,
-    "go-engineering-policy@powerman/skills": true
+    "go-bounded-context-hexagonal@powerman-skills": true,
+    "go-engineering-policy@powerman-skills": true
   }
 }
 ```

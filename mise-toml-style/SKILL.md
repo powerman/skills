@@ -1,12 +1,11 @@
 ---
 name: mise-toml-style
 description: 'Personal style of mise.toml and mise tasks — layout of the file, a task per step, when `run` is a string, an array of groups or `depends`, safe order of tasks which read and write the same files, sh instead of bash, `sources`/`outputs`, hidden tasks, and verified behaviour of mise which its docs miss. Use it whenever you create, edit, review or refactor mise.toml, a mise task file or an included task file (e.g. tasks.toml), add tools or tasks, combine tasks into fmt/lint/test/ci/default, or debug a task which runs twice, races, skips or sees an old tool — even if the user only says "add a task" or "why does mise do X".'
-user-invocable: true
 license: MIT
 compatibility: Designed for Claude Code or similar AI coding agents, and for projects using mise.
 metadata:
   author: powerman
-  version: '0.1.1'
+  version: '0.1.2'
 ---
 
 # mise.toml Style

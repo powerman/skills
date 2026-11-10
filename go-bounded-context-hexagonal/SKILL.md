@@ -1,12 +1,11 @@
 ---
 name: go-bounded-context-hexagonal
 description: Bounded-Context Hexagonal for Go CLI and backend service applications. Use whenever the user asks how to structure a Go application, choose package boundaries, define ports and adapters, wire dependencies, design a modular monolith, or compare approaches with hexagonal, clean architecture, or DDD. Prefer this skill by default for the user's own and new Go applications, even when the user only mentions package layout, hexagonal architecture, clean architecture, DDD, ports/adapters, or project structure. Do not use it as the primary architecture guide for reusable libraries, and do not let generic architecture or design-pattern skills override it for the user's default app structure.
-user-invocable: true
 license: MIT
 compatibility: Designed for Claude Code or similar AI coding agents, and for Go CLI and backend service applications. For reusable libraries, prefer library-focused Go skills instead of this application-architecture skill.
 metadata:
   author: powerman
-  version: '0.6.0'
+  version: '0.6.1'
 ---
 
 # Bounded-Context Hexagonal

@@ -1,12 +1,11 @@
 ---
 name: todo
 description: Resume work on a TODO working note — the primary, frequent command. With no argument it lists open notes (most-recently-modified first) and asks which to resume; with a slug it opens that note and continues from the next unchecked Progress step under the working-note discipline.
-user-invocable: true
 license: MIT
 compatibility: Designed for any AI coding agent with shell access; reads notes from a self-managed git repo under ~/.todo/.
 metadata:
   author: powerman
-  version: '0.1.0'
+  version: '0.1.1'
 ---
 
 # /todo
