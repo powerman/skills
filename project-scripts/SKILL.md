@@ -6,7 +6,7 @@ license: MIT
 compatibility: Designed for Claude Code or similar AI coding agents, and for projects using mise and Go.
 metadata:
   author: powerman
-  version: '0.3.1'
+  version: '0.3.2'
 ---
 
 # Project Scripts
@@ -132,10 +132,10 @@ It isn't `mise/go/`: Go scripts don't depend on mise and can be run without it (
 
 ### Program
 
-- A program whose binary is run by hand is `scripts/<task-name>/` of its task
-  (`:` in the name becomes `-`).
-  A program whose binary only tasks and other binaries run has no task (see "Task")
-  and is named by what it does.
+- A program is `scripts/<name>/`, named by what it does,
+  and its binary is named by its directory.
+  Names of tasks which run it don't affect the program:
+  adding, removing or renaming a task changes neither its directory nor its code.
   Shared code lives in `scripts/internal/`.
   These names are a current choice.
 - A program follows the flat layout of the `go-bounded-context-hexagonal` skill:
@@ -149,8 +149,6 @@ It isn't `mise/go/`: Go scripts don't depend on mise and can be run without it (
   which prints the usage spec for mise, and a test checks the spec by `kongusage.CheckSpec`.
   A program without a task has it too:
   `scripts:lint` checks specs of all binaries, and a task added later needs no change.
-  `kong.Name` is the name of the task, or of the program if it has no task:
-  the binary is named by its directory.
 - `main.go` binds `App` made by `WireApp` to Kong
   (`ctx.BindTo(internal.WireApp(), (*internal.App)(nil))`),
   so a test of the CLI binds a mock instead.
