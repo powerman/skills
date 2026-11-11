@@ -14,7 +14,10 @@ _anchors:
     filename: 'fake.{{.InterfaceFile | base | trimSuffix ".go"}}_test.go'
     structname: 'Fake{{.InterfaceName | firstUpper}}'
 packages:
-  github.com/you/project/scripts/hello/internal:
-    interfaces:
-      World:
-        config: *fake
+  # Every package of every program is scanned for World,
+  # so a new program gets its Fake without a change here.
+  github.com/you/project/scripts:
+    config:
+      !!merge <<: *fake
+      recursive: true
+      include-interface-regex: '^World$'

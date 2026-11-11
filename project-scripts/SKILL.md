@@ -5,7 +5,7 @@ license: MIT
 compatibility: Designed for Claude Code or similar AI coding agents, and for projects using mise and Go.
 metadata:
   author: powerman
-  version: '0.3.3'
+  version: '0.4.0'
 ---
 
 # Project Scripts
@@ -39,9 +39,8 @@ For the style of `mise.toml` and its tasks see the `mise-toml-style` skill.
    code shared with another script, or real logic (data processing, branching, error handling).
    The wish to write a test for a shell script or to extract a library from shell scripts
    is the signal to rewrite them in Go now.
-   Don't build test infrastructure for shell (bats, helpers),
-   and don't add a second language with its own environment (venv, `package.json`):
-   one toolchain for all non-trivial scripts keeps every project simple.
+   Don't build test infrastructure for shell (bats, helpers):
+   one toolchain for all non-trivial scripts, with tests built in, keeps every project simple.
 4. **A script whose language is dictated by the place where it runs** stays in that language:
    a setup script mounted into a container by docker compose,
    a long step of a CI workflow moved out of `.yml`.
@@ -76,7 +75,7 @@ Go replaces shell to get clear code and tests.
 A test needs the external commands of a script behind an interface,
 which brings the layers of the hexagonal architecture,
 and these layers are easier to keep in separate files than in one.
-A single-file Go script without tests (shell rewritten line by line with `bitfield/script`)
+A single-file Go script without tests (shell rewritten line by line)
 gets neither benefit,
 so it's usually a sign that the script should have stayed in shell or still lacks tests.
 
@@ -137,10 +136,18 @@ It isn't `mise/go/`: Go scripts don't depend on mise and can be run without it (
   adding, removing or renaming a task changes neither its directory nor its code.
   Shared code lives in `scripts/internal/`.
   These names are a current choice.
+- A program has only two concepts:
+  `App` with the logic, which uses `World` and doesn't touch the OS,
+  and `RealWorld` with thin adapters to external commands and files, without logic.
+  Everything else is boilerplate, the same in every program,
+  which lets tests replace either concept.
+- `World` is kept at the level the logic needs
+  (e.g. "run this container", not "run docker with these arguments"),
+  so its Fake stays trivial.
 - A program follows the flat layout of the `go-bounded-context-hexagonal` skill:
   a thin `main.go`, and `internal/` with
-  `port.go` (`App`, `World` of external commands, errors, types),
-  `app.go`, `cmd.go` (Kong CLI calling `App`), `wire.go`, `world.go` (real commands).
+  `port.go` (`App`, `World` of external commands and files, errors, types),
+  `app.go`, `cmd.go` (Kong CLI calling `App`), `wire.go`, `world.go` (`RealWorld`).
   When scripts need a change of this layout,
   it's made in the `go-bounded-context-hexagonal` skill, not here.
 - The Kong struct is the only spec of the CLI.
@@ -153,7 +160,8 @@ It isn't `mise/go/`: Go scripts don't depend on mise and can be run without it (
   so a test of the CLI binds a mock instead.
 - `Run` returns errors: `ctx.FatalIfErrorf` exits with the exit status of a failed command
   (an error with `ExitCode()`), so the status reaches mise.
-- External commands are run with `github.com/bitfield/script` (a current choice):
+- A single external command is run with `os/exec`.
+  Pipes with filters are run with `github.com/bitfield/script` (a current choice):
   - start a pipe by `script.NewPipe().WithStderr(os.Stderr)`,
     otherwise stderr of a command goes into the pipe and its filters;
   - run a command built from values by `ExecCommand(name, args...)`,
@@ -186,7 +194,8 @@ are in the `go-engineering-policy` skill; for a script they mean:
   which shows that the commands work on each OS.
 
 Generated Fakes and Mocks are `_test.go` files of package `internal_test` next to `port.go`.
-`scripts/.mockery.yml` lists `World` of each program,
+`scripts/.mockery.yml` scans every package of scripts for `World`,
+so a new program gets its Fake without a change of the config,
 and the template is a copy of `fake` from `github.com/powerman/mockery-templates`
 in `scripts/.mockery/`.
 
@@ -207,7 +216,12 @@ it works from any `dir`, and it's the only place which names the directory.
   and starts it as `"${SCRIPTS_BIN:?}/<name>"`, even many times in a loop:
   a start takes a few milliseconds.
   `scripts:build` rebuilds binaries only when files of `scripts/` change.
-  `go run` isn't used: its own check of changes takes much longer.
+  `go run` isn't used: it adds a line `exit status N` to the output of a failed program
+  and exits with status 1 whatever the status of the program was;
+  also a task with `go run` starts in about 130 ms against about 90 ms of a task with a binary.
+- A shell file task runs a binary the same way
+  (`#MISE depends=["scripts:build"]`, then `"${SCRIPTS_BIN:?}/<name>"`),
+  so a linear shell script can leave its hard part to a Go script.
 - A binary starts another binary as `filepath.Join(os.Getenv("SCRIPTS_BIN"), "<name>")`,
   without a build: the task which started it has built all binaries.
   `wire.go` reads the variable and passes it to the real `World`,
@@ -216,7 +230,8 @@ it works from any `dir`, and it's the only place which names the directory.
 - Tasks and binaries don't run a binary by a nested `mise run` or `{ task = … }`:
   - each task mise runs costs tens of milliseconds, because it resolves tools and env once more,
     and the cost grows with the number of tools, global tools of the developer included;
-    a nested `mise run` of a binary costs about 100 ms against about 3 ms of a direct start;
+    a nested `mise run` of a binary costs about 90 ms
+    against a few milliseconds of a direct start;
   - mise prints `[<task>] ERROR task failed` on any non-zero exit status,
     even on one which is a normal result of the binary (e.g. "conflicts are left"),
     and no flag hides it.
@@ -251,8 +266,15 @@ they start it directly, so a task would add nothing.
   which takes a few tens of milliseconds.
 - `raw_args = true` makes mise pass arguments as is instead of parsing them by the spec,
   so `--help` and invalid flags reach Kong.
-  mise removes `--` after the task name, so a first argument starting with `-`
-  needs `mise run <task> -- -- -x`.
+  mise removes `--` after the task name, so an argument `--` itself
+  needs `mise run <task> -- -- …`.
+- mise runs a task in its `dir`, by default the root of the config,
+  whatever the current directory of the shell is.
+  So paths in arguments are relative to the root,
+  while Tab completes them relative to the current directory of the shell.
+  A program expects to be run from the root by default;
+  other ways out are in "Path completion" of the kongusage README
+  (`MISE_ORIGINAL_CWD`, `dir = '{{cwd}}'`).
 - Don't write a spec of arguments in `mise.toml` and don't add a file to `mise/tasks/`.
 
 ### Tasks to develop scripts
@@ -294,12 +316,10 @@ In a project which supports Windows:
 
 - mise runs inline scripts by `cmd /c` on Windows, which doesn't expand `$SCRIPTS_BIN`,
   so a task which runs a binary has `run_windows = '"%SCRIPTS_BIN%\hello"'`.
-- Tasks needed to run and test scripts (`scripts:build`, `scripts:build:clean`, `scripts:test`)
+- Tasks needed to run and test scripts (`scripts:build`, `scripts:test`)
   work in cmd too, with `run_windows` where they use sh:
   `%SCRIPTS_BIN%` instead of `$SCRIPTS_BIN`, PowerShell instead of a loop.
   Other tasks to develop scripts may need POSIX sh (e.g. Git Bash).
-- Git returns paths with `/`, while arguments may use `\`:
-  convert them by `filepath.ToSlash` before comparing.
 - Tools of `mise.toml` may be unavailable on Windows,
   so CI on Windows installs only tools of scripts (`install_args` of `jdx/mise-action`)
   and sets `MISE_AUTO_INSTALL=false`, so `mise run` doesn't try to install others.
