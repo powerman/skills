@@ -5,7 +5,7 @@ license: MIT
 compatibility: Designed for any AI coding agent with shell access; stores notes in a self-managed git repo under ~/.todo/.
 metadata:
   author: powerman
-  version: '0.2.1'
+  version: '0.3.0'
 ---
 
 # /todo-plan
@@ -25,6 +25,32 @@ and never referenced in commits, PRs, or code.
   Pass it explicitly to plan a task for a different repository.
 - Any free-form text after the slug is additional instruction for this invocation
   (a title, or a refinement to the agreed plan) — incorporate it into the note.
+
+## Ordered notes
+
+A planning discussion often ends with several related notes
+which must be executed in a particular order:
+one needs the result of another,
+or they change the same code and a fixed order keeps their plans valid.
+Prefix the slug of each such note with its position in that order:
+`1-fix-filter`, `2-move-sockets`, `3-design-spike`.
+Then `ls` lists the notes in execution order,
+and anyone who picks a note sees from its name alone which notes go first.
+Without the prefix the order lives only in the planning conversation and gets lost.
+
+- Keep plain slugs for notes which may run in any order:
+  a number would claim an order which does not exist.
+- When a project has several unrelated series,
+  put a short series name before the number: `go-1-tomlmerge`, `wf-1-secrets`.
+- The order is part of the agreed plan.
+  If the discussion did not settle it, propose one with reasons and confirm it with the user.
+- Refer to another note by its full name with the prefix:
+  `` `2-move-sockets` ``, or `` `<project>/2-move-sockets` `` for a note of another project.
+- When a new note joins an existing series, or the agreed order changes,
+  renumber the affected notes with `git -C ~/.todo mv`
+  and update every reference to their old names (`grep -rn '<old-slug>' ~/.todo`).
+  Changing a note name inside a `## Plan` is not a rewrite of the Plan.
+  Commit the renames together with the new note.
 
 ## Steps
 
