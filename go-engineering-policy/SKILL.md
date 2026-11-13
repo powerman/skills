@@ -5,7 +5,7 @@ license: MIT
 compatibility: Designed for Claude Code or similar AI coding agents, and for projects using Golang.
 metadata:
   author: powerman
-  version: '0.0.7'
+  version: '0.0.8'
 ---
 
 # Go Engineering Policy
@@ -225,6 +225,11 @@ The **Resolvable Config Struct** is a usual `Config` struct with few extra rules
 - implement `Clone() Config` if it contains any references (pointer/map/slice/etc.);
 - implement idempotent `Resolve() (Config, error)` which must:
   call `Clone()` (if implemented), apply defaults, normalize and validate.
+
+Always export both `Clone` and `Resolve`, even when the only caller is in the same package:
+a `Config` is often nested into a parent config from another package,
+whose `Resolve` must call the nested `Resolve`
+and whose `Clone` must call the nested `Clone` to make a deep copy.
 
 ```go
 type TLSMode uint8
