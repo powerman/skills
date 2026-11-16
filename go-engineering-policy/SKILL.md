@@ -5,7 +5,7 @@ license: MIT
 compatibility: Designed for Claude Code or similar AI coding agents, and for projects using Golang.
 metadata:
   author: powerman
-  version: '0.0.8'
+  version: '0.1.0'
 ---
 
 # Go Engineering Policy
@@ -222,7 +222,9 @@ The **Resolvable Config Struct** is a usual `Config` struct with few extra rules
     - a sentinel value (when some values allowed by a type are not valid for a field);
     - a pointer exported field;
     - a separate exported field with a flag/enum (for modes such as "default/disabled/custom").
-- implement `Clone() Config` if it contains any references (pointer/map/slice/etc.);
+- implement `Clone() Config` if it contains references to mutable data
+  which needs a deep copy (pointer/map/slice/etc.);
+  functions and values shared by design (e.g. `slog.Leveler`) do not count;
 - implement idempotent `Resolve() (Config, error)` which must:
   call `Clone()` (if implemented), apply defaults, normalize and validate.
 
@@ -230,6 +232,9 @@ Always export both `Clone` and `Resolve`, even when the only caller is in the sa
 a `Config` is often nested into a parent config from another package,
 whose `Resolve` must call the nested `Resolve`
 and whose `Clone` must call the nested `Clone` to make a deep copy.
+Do not add a no-op `Clone` just in case:
+if a nested config gets `Clone` later, the parent's `Resolve` still calls it,
+and only an existing parent `Clone` may miss it — an accepted trade-off.
 
 ```go
 type TLSMode uint8
@@ -267,7 +272,7 @@ type Config struct {
     NoWriteTimeout   bool          // true = disable (ignore WriteTimeout value)
 }
 
-// Required only if Config contains references.
+// Required only if Config contains mutable data which needs a deep copy.
 func (c Config) Clone() Config {
     c.Tags = slices.Clone(c.Tags)
     c.Headers = maps.Clone(c.Headers)
