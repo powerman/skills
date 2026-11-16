@@ -5,7 +5,7 @@ license: MIT
 compatibility: Designed for Claude Code or similar AI coding agents, and for projects using Golang.
 metadata:
   author: powerman
-  version: '0.1.0'
+  version: '0.1.1'
 ---
 
 # Go Engineering Policy
@@ -282,7 +282,9 @@ func (c Config) Clone() Config {
     return c
 }
 
-// Required! Idempotent.
+// Resolve returns a ready-to-use deep copy of cfg:
+// with defaults applied, values normalized, and everything validated.
+// It is idempotent.
 func (c Config) Resolve() (Config, error) {
     c = c.Clone()
     // Defaults.
