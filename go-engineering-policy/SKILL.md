@@ -5,7 +5,7 @@ license: MIT
 compatibility: Designed for Claude Code or similar AI coding agents, and for projects using Golang.
 metadata:
   author: powerman
-  version: '0.1.1'
+  version: '0.1.2'
 ---
 
 # Go Engineering Policy
@@ -153,43 +153,53 @@ Overrides conflicting recommendations from:
 
 - golang-code-style § Complex Conditions & Init Scope
 
-Use `if` init statement ONLY when:
+The `if` line must contain nothing but the condition.
+Logic which the reader has to understand before the condition
+(a call, a computation, an operation result like `err`)
+goes into a separate statement before `if`,
+even when the variable is used only by this `if`:
+in practice, the lost readability outweighs the narrower scope.
 
-- Converting existing value to a form or a type required for condition expression.
-- A new scope is useful to intentionally shadow a variable,
-  to avoid creating aliases for the same thing and cluttering a scope.
+An init statement may contain only technical constructs,
+which the reader can skip and still understand the condition:
+a type conversion, a type assertion, or an extra flag like `, ok` of a map lookup.
+Rarely a new scope is required by itself:
+e.g. to keep the outer `err` intact without introducing ugly `err2` or `errLongName`.
 
 ```go
-// Good - separate operation and condition for readability.
+// Good - logic is separated from the condition.
 err := validate(input)
 if err != nil {
     // code
 }
+n := g.total + r.NumAttrs()
+if n > len(buf) {
+    // code
+}
 
-// Bad - operation is not related to condition.
+// Bad - logic is hidden in the init statement.
 if err := validate(input); err != nil {
     // code
 }
-
-// Good - same var, another representation needed for a condition.
-if value, ok := m[key]; ok {
+if n := g.total + r.NumAttrs(); n > len(buf) {
     // code
 }
 
-// Bad - scope cluttering.
+// Good - technical constructs only.
+if value, ok := m[key]; ok {
+    // code
+}
+if err, ok := errors.AsType[*exec.ExitError](err); ok && err.ExitCode() == 2 {
+    // code
+}
+
+// Bad - technical constructs leak into the outer scope and need aliases.
 value, ok := m[key]
 if ok {
     // code using `value`
 }
 // code not using `value`
-
-// Good - same var, keeps the same name in a new scope, another representation for a condition.
-if err, ok := errors.AsType[*exec.ExitError](err); ok && err.ExitCode() == 2 {
-    // code
-}
-
-// Bad - creating alias; scope cluttering.
- errExit, ok := errors.AsType[*exec.ExitError](err)
+errExit, ok := errors.AsType[*exec.ExitError](err)
 if ok && errExit.ExitCode() == 2 {
     // code
 }
